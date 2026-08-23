@@ -8,9 +8,15 @@ import {
   Layers, 
   CheckCircle2,
   Barcode,
-  Package
+  Package,
+  Edit,
+  ArrowRightLeft,
+  PlusCircle,
+  Trash2,
+  Eye
 } from 'lucide-react';
 import { InventoryItem, SystemSettings } from '../types';
+import { RowActionsMenu } from './RowActionsMenu';
 
 interface InventoryTabProps {
   inventory: InventoryItem[];
@@ -80,13 +86,13 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
   return (
     <div className="space-y-6">
       {/* Header Cards */}
-      <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+          <h3 className="text-base font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <Boxes className="w-5 h-5 text-indigo-600" />
             <span>Pharma &amp; Enterprise Inventory Catalog</span>
           </h3>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             Real-time stock tracking with batch numbers, expiry dates, HSN tax classifications, and automated reorder alerts.
           </p>
         </div>
@@ -110,23 +116,23 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
 
       {/* Summary KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+        <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs">
           <div className="text-[10px] font-bold uppercase text-slate-400">Total Stock Valuation</div>
-          <div className="text-2xl font-black text-slate-900 mt-1">
+          <div className="text-2xl font-black text-slate-900 dark:text-slate-100 mt-1">
             {settings.currency} {totalValuation.toLocaleString()}
           </div>
-          <div className="text-[10px] text-slate-500 mt-0.5">FIFO Purchase Cost Basis</div>
+          <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">FIFO Purchase Cost Basis</div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+        <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs">
           <div className="text-[10px] font-bold uppercase text-slate-400">Total Stock Units</div>
           <div className="text-2xl font-black text-indigo-600 mt-1">
             {inventory.reduce((s, i) => s + i.stock, 0).toLocaleString()} Units
           </div>
-          <div className="text-[10px] text-slate-500 mt-0.5">Across {inventory.length} SKUs</div>
+          <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Across {inventory.length} SKUs</div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+        <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs">
           <div className="text-[10px] font-bold uppercase text-slate-400">Low Stock Reorders</div>
           <div className={`text-2xl font-black mt-1 ${lowStockCount > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
             {lowStockCount} Items
@@ -134,7 +140,7 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
           <div className="text-[10px] text-amber-700 font-bold mt-0.5">Below Safety Threshold</div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex items-center">
+        <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs flex items-center">
           <div className="relative w-full">
             <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
             <input
@@ -142,16 +148,16 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
               placeholder="Search items, HSN, batch..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+              className="w-full pl-9 pr-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs"
             />
           </div>
         </div>
       </div>
 
       {/* Inventory Table */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-xs">
         <table className="w-full text-xs text-left border-collapse">
-          <thead className="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 font-bold text-[10px]">
+          <thead className="bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 uppercase border-b border-slate-200 dark:border-slate-700 font-bold text-[10px]">
             <tr>
               <th className="p-3">Medicine / Product Name</th>
               <th className="p-3">Category</th>
@@ -161,6 +167,7 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
               <th className="p-3 text-right">Selling Price</th>
               <th className="p-3 text-right">In-Stock Qty</th>
               <th className="p-3 text-center">Stock Status</th>
+              <th className="p-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -169,15 +176,15 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
               const isLow = item.stock <= reorderThreshold;
               const isCritical = item.stock <= (settings.criticalStockThreshold || 5);
               return (
-                <tr key={item.id} className="hover:bg-slate-50">
-                  <td className="p-3 font-bold text-slate-900">{item.name}</td>
-                  <td className="p-3 text-slate-600">{item.category}</td>
-                  <td className="p-3 font-mono font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded text-[11px]">
+                <tr key={item.id} className="hover:bg-slate-50 dark:bg-slate-800">
+                  <td className="p-3 font-bold text-slate-900 dark:text-slate-100">{item.name}</td>
+                  <td className="p-3 text-slate-600 dark:text-slate-400">{item.category}</td>
+                  <td className="p-3 font-mono font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-[11px]">
                     {item.batch}
                   </td>
-                  <td className="p-3 font-mono text-slate-600">{item.hsnCode || '3004.90.99'}</td>
-                  <td className="p-3 text-slate-600">{item.expiryDate || 'N/A'}</td>
-                  <td className="p-3 text-right font-black text-slate-900">
+                  <td className="p-3 font-mono text-slate-600 dark:text-slate-400">{item.hsnCode || '3004.90.99'}</td>
+                  <td className="p-3 text-slate-600 dark:text-slate-400">{item.expiryDate || 'N/A'}</td>
+                  <td className="p-3 text-right font-black text-slate-900 dark:text-slate-100">
                     {settings.currency} {item.price.toFixed(2)}
                   </td>
                   <td className="p-3 text-right">
@@ -201,6 +208,43 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
                       {item.stock === 0 ? 'Out of Stock' : isCritical ? 'Critical Stock' : isLow ? 'Below Reorder' : 'Optimal'}
                     </span>
                   </td>
+                  <td className="p-3 text-right">
+                    <RowActionsMenu
+                      actions={[
+                        {
+                          label: 'View Item Details',
+                          icon: <Eye className="w-3.5 h-3.5" />,
+                          onClick: () => {
+                            alert(
+                              `Item: ${item.name}\nBatch: ${item.batch}\nHSN: ${item.hsnCode || '3004.90.99'}\nIn Stock: ${item.stock}\nSelling Price: ${settings.currency} ${item.price.toFixed(2)}\nExpiry: ${item.expiryDate || 'N/A'}`
+                            );
+                          },
+                        },
+                        {
+                          label: 'Transfer to Outlet',
+                          icon: <ArrowRightLeft className="w-3.5 h-3.5 text-purple-600" />,
+                          onClick: () => onOpenStockTransferModal(),
+                          variant: 'primary',
+                        },
+                        {
+                          label: 'Quick Add Stock (+10)',
+                          icon: <PlusCircle className="w-3.5 h-3.5 text-emerald-600" />,
+                          onClick: () => {
+                            item.stock += 10;
+                            alert(`Added +10 stock to ${item.name}. New total: ${item.stock}`);
+                          },
+                          variant: 'success',
+                        },
+                        {
+                          label: 'Print Barcode Label',
+                          icon: <Barcode className="w-3.5 h-3.5 text-cyan-600" />,
+                          onClick: () => {
+                            alert(`Generating & printing barcode label for ${item.name} (Batch: ${item.batch})...`);
+                          },
+                        },
+                      ]}
+                    />
+                  </td>
                 </tr>
               );
             })}
@@ -211,14 +255,14 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
       {/* Add Stock Item Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 border border-slate-200">
-            <div className="flex justify-between items-center pb-3 border-b border-slate-200 mb-4">
-              <h3 className="font-extrabold text-slate-900 text-sm">Add New Medicine / Inventory SKU</h3>
-              <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600">✕</button>
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl max-w-lg w-full p-6 border border-slate-200 dark:border-slate-700">
+            <div className="flex justify-between items-center pb-3 border-b border-slate-200 dark:border-slate-700 mb-4">
+              <h3 className="font-extrabold text-slate-900 dark:text-slate-100 text-sm">Add New Medicine / Inventory SKU</h3>
+              <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600 dark:text-slate-400">✕</button>
             </div>
             <form onSubmit={handleSaveItem} className="space-y-3 text-xs">
               <div>
-                <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">Item / Medicine Name *</label>
+                <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Item / Medicine Name *</label>
                 <input
                   type="text"
                   value={name}
@@ -231,11 +275,11 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">Category</label>
+                  <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Category</label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-3 py-2 border rounded-lg bg-white"
+                    className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-slate-900"
                   >
                     <option value="Tablets">Tablets / Capsules</option>
                     <option value="Syrups">Syrups / Suspensions</option>
@@ -245,7 +289,7 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">HSN / Tariff Code</label>
+                  <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">HSN / Tariff Code</label>
                   <input
                     type="text"
                     value={hsnCode}
@@ -258,7 +302,7 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">Batch Number *</label>
+                  <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Batch Number *</label>
                   <input
                     type="text"
                     value={batch}
@@ -268,19 +312,19 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">Expiry Date</label>
+                  <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Expiry Date</label>
                   <input
                     type="date"
                     value={expiry}
                     onChange={(e) => setExpiry(e.target.value)}
-                    className="w-full px-3 py-2 border rounded-lg bg-white"
+                    className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-slate-900"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">Initial Qty</label>
+                  <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Initial Qty</label>
                   <input
                     type="number"
                     value={stock}
@@ -289,7 +333,7 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">Purchase Cost</label>
+                  <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Purchase Cost</label>
                   <input
                     type="number"
                     value={costPrice}
@@ -298,7 +342,7 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">Sale Price</label>
+                  <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Sale Price</label>
                   <input
                     type="number"
                     value={price}
@@ -308,11 +352,11 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
                 </div>
               </div>
 
-              <div className="flex justify-end space-x-2 pt-3 border-t border-slate-100">
+              <div className="flex justify-end space-x-2 pt-3 border-t border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg font-bold text-xs"
+                  className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg font-bold text-xs"
                 >
                   Cancel
                 </button>
@@ -330,4 +374,3 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
     </div>
   );
 };
-
