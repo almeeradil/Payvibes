@@ -31,6 +31,7 @@ interface SalesTabProps {
   userRole: string;
   onSaveInvoice: (invoice: SalesInvoice) => void;
   onOpenEwayModal: (invoice: SalesInvoice) => void;
+  onDeleteOrder?: (id: string) => void;
 }
 
 export const SalesTab: React.FC<SalesTabProps> = ({
@@ -41,6 +42,7 @@ export const SalesTab: React.FC<SalesTabProps> = ({
   userRole,
   onSaveInvoice,
   onOpenEwayModal,
+  onDeleteOrder,
 }) => {
   const [showNewModal, setShowNewModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -509,6 +511,12 @@ export const SalesTab: React.FC<SalesTabProps> = ({
                           },
                           variant: 'default',
                         },
+                        ...(onDeleteOrder ? [{
+                          label: 'Delete Invoice',
+                          icon: <Trash2 className="w-3.5 h-3.5 text-rose-600" />,
+                          onClick: () => onDeleteOrder(order.id),
+                          variant: 'danger' as const,
+                        }] : []),
                       ]}
                     />
                   </div>
