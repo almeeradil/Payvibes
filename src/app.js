@@ -4,6 +4,46 @@ let salesChartInstance = null;
 let payoutChartInstance = null;
 let reportsChartInstance = null;
 
+// Action Dropdown Menu Helpers
+window.toggleActionMenu = function(event, menuId) {
+  if (event) event.stopPropagation();
+  const targetMenu = document.getElementById(menuId);
+  if (!targetMenu) return;
+  const isHidden = targetMenu.classList.contains('hidden');
+  window.closeAllActionMenus();
+  if (isHidden) {
+    targetMenu.classList.remove('hidden');
+  }
+};
+
+window.closeAllActionMenus = function() {
+  document.querySelectorAll('.action-dropdown-menu').forEach(m => m.classList.add('hidden'));
+};
+
+document.addEventListener('click', () => {
+  if (window.closeAllActionMenus) window.closeAllActionMenus();
+});
+
+window.renderActionDropdown = function(menuId, options) {
+  if (!options || options.length === 0) return '';
+  const itemsHtml = options.map(opt => `
+    <button onclick="${opt.onclick}; closeAllActionMenus();" class="w-full text-left px-3 py-2 hover:bg-slate-100 flex items-center gap-2.5 ${opt.color || 'text-slate-700'} font-semibold text-xs transition cursor-pointer">
+      <i class="${opt.icon} w-4 text-center"></i><span>${opt.label}</span>
+    </button>
+  `).join('');
+
+  return `
+    <div class="relative inline-block text-left">
+      <button onclick="toggleActionMenu(event, '${menuId}')" title="Actions" class="p-1.5 hover:bg-slate-200/80 rounded-lg text-slate-600 hover:text-slate-900 transition cursor-pointer border border-transparent hover:border-slate-300">
+        <i class="fa-solid fa-ellipsis-vertical text-sm"></i>
+      </button>
+      <div id="${menuId}" class="action-dropdown-menu hidden absolute right-0 mt-1 w-36 bg-white border border-slate-200 rounded-xl shadow-xl z-50 py-1 text-xs font-semibold text-slate-700">
+        ${itemsHtml}
+      </div>
+    </div>
+  `;
+};
+
 // Initialize Storage
 function initStorage() {
   const saved = localStorage.getItem('payvibes_enterprise_data');
@@ -2401,11 +2441,20 @@ function renderEwayBills() {
 
   const isEmp = isEmployeeRole();
 
-  ewbList.forEach(e => {
+  ewbList.forEach((e, idx) => {
     let statusClass = 'bg-cyan-100 text-cyan-800 border-cyan-200';
     if (e.status === 'In-Transit') statusClass = 'bg-purple-100 text-purple-800 border-purple-200';
     else if (e.status === 'Delivered') statusClass = 'bg-emerald-100 text-emerald-800 border-emerald-200';
     else if (e.status === 'Cancelled') statusClass = 'bg-rose-100 text-rose-800 border-rose-200';
+
+    const opts = [
+      { label: 'Print Slip', icon: 'fa-solid fa-print', color: 'text-cyan-700', onclick: `openPrintEwaySlip('${e.id || e.ewbNo}')` },
+      { label: 'Track Live', icon: 'fa-solid fa-location-dot', color: 'text-purple-700', onclick: `openEwayTracking('${e.id || e.ewbNo}')` }
+    ];
+    if (!isEmp) {
+      opts.push({ label: 'Edit', icon: 'fa-solid fa-pen-to-square', color: 'text-amber-600', onclick: `editEwayBill('${e.id || e.ewbNo}')` });
+      opts.push({ label: 'Delete', icon: 'fa-solid fa-trash', color: 'text-rose-600', onclick: `deleteEwayBill('${e.id || e.ewbNo}')` });
+    }
 
     tbody.innerHTML += `
       <tr class="hover:bg-slate-50/80 transition group">
@@ -2439,25 +2488,8 @@ function renderEwayBills() {
         <td class="p-3.5">
           <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${statusClass}">${e.status}</span>
         </td>
-        <td class="p-3.5 text-right whitespace-nowrap">
-          <div class="flex items-center justify-end gap-1.5">
-            <button onclick="openPrintEwaySlip('${e.id || e.ewbNo}')" title="Print Statutory Waybill Slip" class="p-1.5 bg-cyan-50 hover:bg-cyan-100 text-cyan-700 rounded-lg text-xs font-bold transition flex items-center gap-1">
-              <i class="fa-solid fa-print"></i>
-              <span class="hidden xl:inline text-[10px]">Print Slip</span>
-            </button>
-            <button onclick="openEwayTracking('${e.id || e.ewbNo}')" title="Track Live Transit" class="p-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg text-xs font-bold transition flex items-center gap-1">
-              <i class="fa-solid fa-location-dot"></i>
-              <span class="hidden xl:inline text-[10px]">Track</span>
-            </button>
-            ${!isEmp ? `
-              <button onclick="editEwayBill('${e.id || e.ewbNo}')" title="Edit Consignment Details" class="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition">
-                <i class="fa-solid fa-pen-to-square"></i>
-              </button>
-              <button onclick="deleteEwayBill('${e.id || e.ewbNo}')" title="Cancel / Delete Waybill" class="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-xs font-bold transition">
-                <i class="fa-solid fa-trash"></i>
-              </button>
-            ` : ''}
-          </div>
+        <td class="p-3.5 text-right">
+          ${renderActionDropdown(`act-ewb-${idx}`, opts)}
         </td>
       </tr>
     `;
@@ -2837,6 +2869,40 @@ function renderStats() {
   if (document.getElementById('stat-cashBalance')) document.getElementById('stat-cashBalance').innerText = `Rs ${cashIn.toLocaleString()}`;
   if (document.getElementById('stat-bankBalance')) document.getElementById('stat-bankBalance').innerText = `Rs ${bankIn.toLocaleString()}`;
   if (document.getElementById('stat-totalBalance')) document.getElementById('stat-totalBalance').innerText = `Rs ${(cashIn + bankIn).toLocaleString()}`;
+
+  // Render Dashboard Inventory Table
+  const dashTbody = document.getElementById('dashboardInventoryTableBody');
+  if (dashTbody) {
+    if (inventory.length === 0) {
+      dashTbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-slate-400 font-semibold">No inventory items in stock.</td></tr>';
+    } else {
+      const isEmp = isEmployeeRole();
+      dashTbody.innerHTML = inventory.map((i, idx) => {
+        const isLow = (i.stock || 0) <= (i.minStockAlert || i.minStockLevel || reorderPoint);
+        const opts = [];
+        if (!isEmp) {
+          opts.push({ label: 'Edit', icon: 'fa-solid fa-pen-to-square', color: 'text-amber-600', onclick: `editInventoryItem('${i.id}')` });
+          opts.push({ label: 'Delete', icon: 'fa-solid fa-trash', color: 'text-rose-600', onclick: `deleteInventoryItem('${i.id}')` });
+        }
+        return `
+          <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
+            <td class="p-3 font-bold text-slate-900 flex items-center gap-1.5">
+              ${isLow ? '<i class="fa-solid fa-triangle-exclamation text-rose-600" title="Low Stock Alert"></i>' : ''}
+              <span>${i.name}</span>
+            </td>
+            <td class="p-3 font-mono text-[11px]">${i.batch || 'BT-LIVE'}</td>
+            <td class="p-3 font-black ${isLow ? 'text-rose-600' : 'text-slate-900'}">${i.stock}</td>
+            <td class="p-3">${i.unit || 'Pcs'}</td>
+            <td class="p-3 text-slate-600">${i.expiry || '-'}</td>
+            <td class="p-3 font-bold text-orange-600">Rs ${i.salePrice}</td>
+            <td class="p-3 text-right">
+              ${renderActionDropdown(`dash-inv-${idx}`, opts)}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+  }
 }
 
 function renderOrders() {
@@ -2848,34 +2914,41 @@ function renderOrders() {
     return;
   }
   const isEmp = isEmployeeRole();
-  tbody.innerHTML = filtered.map(o => `
-    <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
-      <td class="p-3 font-mono font-bold text-orange-600">
-        <div>${o.inv}</div>
-        ${o.irn ? '<div class="text-[9px] text-cyan-700 font-sans font-semibold">● IRN Verified</div>' : ''}
-        ${o.eWayBillNo ? `<button onclick="openPrintEwaySlip('${o.eWayBillNo}')" title="View E-Way Bill" class="text-[9px] bg-cyan-50 text-cyan-700 px-1.5 py-0.5 rounded border border-cyan-200 font-mono font-bold mt-0.5 hover:bg-cyan-100 flex items-center gap-1"><i class="fa-solid fa-truck-fast"></i> ${o.eWayBillNo}</button>` : ''}
-      </td>
-      <td class="p-3">${o.date}</td>
-      <td class="p-3">
-        <div class="font-bold text-slate-900">${o.custName}</div>
-        <div class="text-[10px] text-slate-400">${o.custNtnCnic || o.custPhone || 'Walk-in'}</div>
-      </td>
-      <td class="p-3 font-semibold">${o.prodName}</td>
-      <td class="p-3">${o.qty} ${o.uom || 'Pcs'} @ Rs ${o.rate}</td>
-      <td class="p-3">
-        <div>GST: ${o.taxPct || 18}%</div>
-        ${o.tcsAmount ? `<div class="text-[10px] text-purple-600 font-bold">+TCS: Rs ${o.tcsAmount.toFixed(1)}</div>` : ''}
-      </td>
-      <td class="p-3 font-black text-slate-900">Rs ${o.amount.toFixed(2)}</td>
-      <td class="p-3 text-right space-x-1 whitespace-nowrap">
-        <button onclick="openPrintInvoice('${o.inv}', 'TAX INVOICE')" title="Print Invoice" class="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs font-bold"><i class="fa-solid fa-print"></i></button>
-        <button onclick="openPrintEwaySlip('${o.eWayBillNo || o.inv}')" title="Print E-Way Bill Slip" class="p-1.5 bg-cyan-50 text-cyan-600 hover:bg-cyan-100 rounded-lg text-xs font-bold"><i class="fa-solid fa-truck-fast"></i></button>
-        ${!isEmp ? `<button onclick="editOrder('${o.inv}')" title="Edit" class="p-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs font-bold"><i class="fa-solid fa-pen-to-square"></i></button>` : ''}
-        <button onclick="sendWhatsappInvoice('${o.inv}')" title="Send WhatsApp" class="p-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg text-xs"><i class="fa-brands fa-whatsapp"></i></button>
-        ${!isEmp ? `<button onclick="deleteOrder('${o.inv}')" title="Delete" class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
-      </td>
-    </tr>
-  `).join('');
+  tbody.innerHTML = filtered.map((o, idx) => {
+    const opts = [
+      { label: 'Print Invoice', icon: 'fa-solid fa-print', color: 'text-blue-600', onclick: `openPrintInvoice('${o.inv}', 'TAX INVOICE')` },
+      { label: 'Print E-Way', icon: 'fa-solid fa-truck-fast', color: 'text-cyan-600', onclick: `openPrintEwaySlip('${o.eWayBillNo || o.inv}')` },
+      { label: 'WhatsApp', icon: 'fa-brands fa-whatsapp', color: 'text-emerald-600', onclick: `sendWhatsappInvoice('${o.inv}')` }
+    ];
+    if (!isEmp) {
+      opts.push({ label: 'Edit', icon: 'fa-solid fa-pen-to-square', color: 'text-amber-600', onclick: `editOrder('${o.inv}')` });
+      opts.push({ label: 'Delete', icon: 'fa-solid fa-trash', color: 'text-rose-600', onclick: `deleteOrder('${o.inv}')` });
+    }
+    return `
+      <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
+        <td class="p-3 font-mono font-bold text-orange-600">
+          <div>${o.inv}</div>
+          ${o.irn ? '<div class="text-[9px] text-cyan-700 font-sans font-semibold">● IRN Verified</div>' : ''}
+          ${o.eWayBillNo ? `<button onclick="openPrintEwaySlip('${o.eWayBillNo}')" title="View E-Way Bill" class="text-[9px] bg-cyan-50 text-cyan-700 px-1.5 py-0.5 rounded border border-cyan-200 font-mono font-bold mt-0.5 hover:bg-cyan-100 flex items-center gap-1"><i class="fa-solid fa-truck-fast"></i> ${o.eWayBillNo}</button>` : ''}
+        </td>
+        <td class="p-3">${o.date}</td>
+        <td class="p-3">
+          <div class="font-bold text-slate-900">${o.custName}</div>
+          <div class="text-[10px] text-slate-400">${o.custNtnCnic || o.custPhone || 'Walk-in'}</div>
+        </td>
+        <td class="p-3 font-semibold">${o.prodName}</td>
+        <td class="p-3">${o.qty} ${o.uom || 'Pcs'} @ Rs ${o.rate}</td>
+        <td class="p-3">
+          <div>GST: ${o.taxPct || 18}%</div>
+          ${o.tcsAmount ? `<div class="text-[10px] text-purple-600 font-bold">+TCS: Rs ${o.tcsAmount.toFixed(1)}</div>` : ''}
+        </td>
+        <td class="p-3 font-black text-slate-900">Rs ${o.amount.toFixed(2)}</td>
+        <td class="p-3 text-right">
+          ${renderActionDropdown(`act-ord-${idx}`, opts)}
+        </td>
+      </tr>
+    `;
+  }).join('');
 }
 
 function deleteOrder(inv) {
@@ -2896,21 +2969,28 @@ function renderPurchaseInvoices() {
   if (!tbody || !window.userData) return;
   const filtered = filterByBranch(window.userData.purchaseinvoices || []);
   const isEmp = isEmployeeRole();
-  tbody.innerHTML = filtered.map(p => `
-    <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
-      <td class="p-3 font-mono font-bold text-emerald-600">${p.ref}</td>
-      <td class="p-3">${p.date}</td>
-      <td class="p-3 font-bold">${p.supplier}</td>
-      <td class="p-3">${p.item}</td>
-      <td class="p-3">${p.qty} @ Rs ${p.rate}</td>
-      <td class="p-3 font-black">Rs ${p.amt.toLocaleString()}</td>
-      <td class="p-3 text-right space-x-1">
-        <button onclick="openPrintInvoice('${p.ref}', 'PURCHASE BILL')" title="Print" class="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs"><i class="fa-solid fa-print"></i></button>
-        ${!isEmp ? `<button onclick="editPurchaseInvoice('${p.ref}')" title="Edit" class="p-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs"><i class="fa-solid fa-pen-to-square"></i></button>` : ''}
-        ${!isEmp ? `<button onclick="deletePurchaseInvoice('${p.ref}')" title="Delete" class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
-      </td>
-    </tr>
-  `).join('');
+  tbody.innerHTML = filtered.map((p, idx) => {
+    const opts = [
+      { label: 'Print Bill', icon: 'fa-solid fa-print', color: 'text-blue-600', onclick: `openPrintInvoice('${p.ref}', 'PURCHASE BILL')` }
+    ];
+    if (!isEmp) {
+      opts.push({ label: 'Edit', icon: 'fa-solid fa-pen-to-square', color: 'text-amber-600', onclick: `editPurchaseInvoice('${p.ref}')` });
+      opts.push({ label: 'Delete', icon: 'fa-solid fa-trash', color: 'text-rose-600', onclick: `deletePurchaseInvoice('${p.ref}')` });
+    }
+    return `
+      <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
+        <td class="p-3 font-mono font-bold text-emerald-600">${p.ref}</td>
+        <td class="p-3">${p.date}</td>
+        <td class="p-3 font-bold">${p.supplier}</td>
+        <td class="p-3">${p.item}</td>
+        <td class="p-3">${p.qty} @ Rs ${p.rate}</td>
+        <td class="p-3 font-black">Rs ${p.amt.toLocaleString()}</td>
+        <td class="p-3 text-right">
+          ${renderActionDropdown(`act-pinv-${idx}`, opts)}
+        </td>
+      </tr>
+    `;
+  }).join('');
 }
 
 function deletePurchaseInvoice(ref) {
@@ -3088,21 +3168,29 @@ function renderInventory() {
   if (!tbody || !window.userData) return;
   const filtered = filterByBranch(window.userData.inventory || []);
   const isEmp = isEmployeeRole();
-  tbody.innerHTML = filtered.map(i => `
-    <tr class="border-b border-slate-100 hover:bg-slate-50">
-      <td class="p-3 font-bold text-slate-900">${i.name}</td>
-      <td class="p-3 font-mono text-[11px]">${i.batch}</td>
-      <td class="p-3 font-black ${i.stock < 10 ? 'text-rose-600' : 'text-slate-900'}">${i.stock}</td>
-      <td class="p-3">${i.unit}</td>
-      <td class="p-3 text-slate-600">${i.expiry}</td>
-      <td class="p-3 font-semibold">Rs ${i.purchasePrice}</td>
-      <td class="p-3 font-bold text-orange-600">Rs ${i.salePrice}</td>
-      <td class="p-3 text-right space-x-1">
-        ${!isEmp ? `<button onclick="editInventoryItem('${i.id}')" title="Edit" class="p-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs"><i class="fa-solid fa-pen-to-square"></i></button>` : ''}
-        ${!isEmp ? `<button onclick="deleteInventoryItem('${i.id}')" title="Delete" class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
-      </td>
-    </tr>
-  `).join('');
+  tbody.innerHTML = filtered.map((i, idx) => {
+    const opts = [
+      { label: 'Print Barcode', icon: 'fa-solid fa-barcode', color: 'text-blue-600', onclick: `openPrintVoucherCustom({docType:'INVENTORY ITEM BARCODE',invNo:'${i.batch || 'ITEM'}',invDate:'${i.expiry || ''}',recipient:'${i.name}',address:'Stock Dept',itemName:'Item: ${i.name}',category:'Inventory',mode:'Barcode Label',amount:${i.salePrice || 0}})` }
+    ];
+    if (!isEmp) {
+      opts.push({ label: 'Edit', icon: 'fa-solid fa-pen-to-square', color: 'text-amber-600', onclick: `editInventoryItem('${i.id}')` });
+      opts.push({ label: 'Delete', icon: 'fa-solid fa-trash', color: 'text-rose-600', onclick: `deleteInventoryItem('${i.id}')` });
+    }
+    return `
+      <tr class="border-b border-slate-100 hover:bg-slate-50">
+        <td class="p-3 font-bold text-slate-900">${i.name}</td>
+        <td class="p-3 font-mono text-[11px]">${i.batch}</td>
+        <td class="p-3 font-black ${i.stock < 10 ? 'text-rose-600' : 'text-slate-900'}">${i.stock}</td>
+        <td class="p-3">${i.unit}</td>
+        <td class="p-3 text-slate-600">${i.expiry}</td>
+        <td class="p-3 font-semibold">Rs ${i.purchasePrice}</td>
+        <td class="p-3 font-bold text-orange-600">Rs ${i.salePrice}</td>
+        <td class="p-3 text-right">
+          ${renderActionDropdown(`act-inv-${idx}`, opts)}
+        </td>
+      </tr>
+    `;
+  }).join('');
 }
 
 function deleteInventoryItem(id) {
@@ -3120,20 +3208,28 @@ function renderCustomers() {
   if (!tbody || !window.userData) return;
   const customers = window.userData.customers || [];
   const isEmp = isEmployeeRole();
-  tbody.innerHTML = customers.map(c => `
-    <tr class="border-b border-slate-100 hover:bg-slate-50">
-      <td class="p-3 font-bold text-slate-900">${c.name}</td>
-      <td class="p-3">${c.contact || '-'} <span class="text-[10px] text-slate-400">(${c.category || 'Retailer'})</span></td>
-      <td class="p-3">${c.address || '-'}</td>
-      <td class="p-3 font-mono text-[11px]">${c.ntnCnic || '-'}</td>
-      <td class="p-3 font-bold text-purple-600">${c.loyaltyPoints || 0} pts</td>
-      <td class="p-3 font-black text-rose-600">Rs ${(c.credit || 0).toLocaleString()}</td>
-      <td class="p-3 text-right space-x-1">
-        ${!isEmp ? `<button onclick="editCustomer('${c.id}')" title="Edit" class="p-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs"><i class="fa-solid fa-pen-to-square"></i></button>` : ''}
-        ${!isEmp ? `<button onclick="deleteCustomer('${c.id}')" title="Delete" class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
-      </td>
-    </tr>
-  `).join('');
+  tbody.innerHTML = customers.map((c, idx) => {
+    const opts = [
+      { label: 'Print Statement', icon: 'fa-solid fa-print', color: 'text-blue-600', onclick: `openPrintVoucherCustom({docType:'CLIENT ACCOUNT STATEMENT',invNo:'CUST-${c.id}',invDate:new Date().toISOString().split('T')[0],recipient:c.name,address:c.address||'Client Account',itemName:'Customer Statement',category:'Accounts',mode:'Ledger',amount:c.credit||0})` }
+    ];
+    if (!isEmp) {
+      opts.push({ label: 'Edit', icon: 'fa-solid fa-pen-to-square', color: 'text-amber-600', onclick: `editCustomer('${c.id}')` });
+      opts.push({ label: 'Delete', icon: 'fa-solid fa-trash', color: 'text-rose-600', onclick: `deleteCustomer('${c.id}')` });
+    }
+    return `
+      <tr class="border-b border-slate-100 hover:bg-slate-50">
+        <td class="p-3 font-bold text-slate-900">${c.name}</td>
+        <td class="p-3">${c.contact || '-'} <span class="text-[10px] text-slate-400">(${c.category || 'Retailer'})</span></td>
+        <td class="p-3">${c.address || '-'}</td>
+        <td class="p-3 font-mono text-[11px]">${c.ntnCnic || '-'}</td>
+        <td class="p-3 font-bold text-purple-600">${c.loyaltyPoints || 0} pts</td>
+        <td class="p-3 font-black text-rose-600">Rs ${(c.credit || 0).toLocaleString()}</td>
+        <td class="p-3 text-right">
+          ${renderActionDropdown(`act-cust-${idx}`, opts)}
+        </td>
+      </tr>
+    `;
+  }).join('');
 }
 
 function deleteCustomer(id) {
@@ -3151,19 +3247,27 @@ function renderSuppliers() {
   if (!tbody || !window.userData) return;
   const suppliers = window.userData.suppliers || [];
   const isEmp = isEmployeeRole();
-  tbody.innerHTML = suppliers.map(s => `
-    <tr class="border-b border-slate-100 hover:bg-slate-50">
-      <td class="p-3 font-bold text-slate-900">${s.name}</td>
-      <td class="p-3">${s.contact} <span class="text-[10px] text-slate-400">(${s.contactPerson})</span></td>
-      <td class="p-3">${s.address || '-'}</td>
-      <td class="p-3 font-mono text-[11px]">${s.ntnTax || '-'}</td>
-      <td class="p-3 font-black text-slate-900">Rs ${(s.credit || 0).toLocaleString()}</td>
-      <td class="p-3 text-right space-x-1">
-        ${!isEmp ? `<button onclick="editSupplier('${s.id}')" title="Edit" class="p-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs"><i class="fa-solid fa-pen-to-square"></i></button>` : ''}
-        ${!isEmp ? `<button onclick="deleteSupplier('${s.id}')" title="Delete" class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
-      </td>
-    </tr>
-  `).join('');
+  tbody.innerHTML = suppliers.map((s, idx) => {
+    const opts = [
+      { label: 'Print Statement', icon: 'fa-solid fa-print', color: 'text-blue-600', onclick: `openPrintVoucherCustom({docType:'SUPPLIER LEDGER STATEMENT',invNo:'SUPP-${s.id}',invDate:new Date().toISOString().split('T')[0],recipient:s.name,address:s.address||'Vendor Account',itemName:'Supplier Ledger',category:'Accounts',mode:'Vendor',amount:s.credit||0})` }
+    ];
+    if (!isEmp) {
+      opts.push({ label: 'Edit', icon: 'fa-solid fa-pen-to-square', color: 'text-amber-600', onclick: `editSupplier('${s.id}')` });
+      opts.push({ label: 'Delete', icon: 'fa-solid fa-trash', color: 'text-rose-600', onclick: `deleteSupplier('${s.id}')` });
+    }
+    return `
+      <tr class="border-b border-slate-100 hover:bg-slate-50">
+        <td class="p-3 font-bold text-slate-900">${s.name}</td>
+        <td class="p-3">${s.contact} <span class="text-[10px] text-slate-400">(${s.contactPerson})</span></td>
+        <td class="p-3">${s.address || '-'}</td>
+        <td class="p-3 font-mono text-[11px]">${s.ntnTax || '-'}</td>
+        <td class="p-3 font-black text-slate-900">Rs ${(s.credit || 0).toLocaleString()}</td>
+        <td class="p-3 text-right">
+          ${renderActionDropdown(`act-supp-${idx}`, opts)}
+        </td>
+      </tr>
+    `;
+  }).join('');
 }
 
 function deleteSupplier(id) {
@@ -3181,20 +3285,27 @@ function renderQuotations() {
   if (!tbody || !window.userData) return;
   const quotations = window.userData.quotations || [];
   const isEmp = isEmployeeRole();
-  tbody.innerHTML = quotations.map(q => `
-    <tr class="border-b border-slate-100 hover:bg-slate-50">
-      <td class="p-3 font-bold">${q.customer}</td>
-      <td class="p-3">${q.product}</td>
-      <td class="p-3 font-bold text-orange-600">Rs ${q.rate}</td>
-      <td class="p-3 text-emerald-600">${q.discount}</td>
-      <td class="p-3">${q.date}</td>
-      <td class="p-3 text-right space-x-1">
-        <button onclick="openPrintInvoice('${q.qno}', 'POSVIBE ESTIMATE')" title="Print" class="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs"><i class="fa-solid fa-print"></i></button>
-        ${!isEmp ? `<button onclick="editQuotation('${q.qno}')" title="Edit" class="p-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs"><i class="fa-solid fa-pen-to-square"></i></button>` : ''}
-        ${!isEmp ? `<button onclick="window.userData.quotations=window.userData.quotations.filter(x=>x.qno!=='${q.qno}');persistData();renderQuotations();" title="Delete" class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
-      </td>
-    </tr>
-  `).join('');
+  tbody.innerHTML = quotations.map((q, idx) => {
+    const opts = [
+      { label: 'Print Estimate', icon: 'fa-solid fa-print', color: 'text-blue-600', onclick: `openPrintInvoice('${q.qno}', 'POSVIBE ESTIMATE')` }
+    ];
+    if (!isEmp) {
+      opts.push({ label: 'Edit', icon: 'fa-solid fa-pen-to-square', color: 'text-amber-600', onclick: `editQuotation('${q.qno}')` });
+      opts.push({ label: 'Delete', icon: 'fa-solid fa-trash', color: 'text-rose-600', onclick: `window.userData.quotations=window.userData.quotations.filter(x=>x.qno!=='${q.qno}');persistData();renderQuotations();` });
+    }
+    return `
+      <tr class="border-b border-slate-100 hover:bg-slate-50">
+        <td class="p-3 font-bold">${q.customer}</td>
+        <td class="p-3">${q.product}</td>
+        <td class="p-3 font-bold text-orange-600">Rs ${q.rate}</td>
+        <td class="p-3 text-emerald-600">${q.discount}</td>
+        <td class="p-3">${q.date}</td>
+        <td class="p-3 text-right">
+          ${renderActionDropdown(`act-quot-${idx}`, opts)}
+        </td>
+      </tr>
+    `;
+  }).join('');
 }
 
 function renderDebitNotes() {
@@ -3202,21 +3313,28 @@ function renderDebitNotes() {
   if (!tbody || !window.userData) return;
   const debitnotes = window.userData.debitnotes || [];
   const isEmp = isEmployeeRole();
-  tbody.innerHTML = debitnotes.map(d => `
-    <tr class="border-b border-slate-100 hover:bg-slate-50">
-      <td class="p-3 font-mono font-bold text-rose-600">${d.ref}</td>
-      <td class="p-3 font-bold">${d.party}</td>
-      <td class="p-3 font-mono">${d.origInv}</td>
-      <td class="p-3">${d.item} (x${d.qty})</td>
-      <td class="p-3 text-rose-700 font-medium">${d.reason}</td>
-      <td class="p-3 font-black">Rs ${d.amt}</td>
-      <td class="p-3 text-right space-x-1">
-        <button onclick="openPrintInvoice('${d.ref}', 'DEBIT NOTE')" title="Print" class="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs"><i class="fa-solid fa-print"></i></button>
-        ${!isEmp ? `<button onclick="editDebitNote('${d.ref}')" title="Edit" class="p-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs"><i class="fa-solid fa-pen-to-square"></i></button>` : ''}
-        ${!isEmp ? `<button onclick="window.userData.debitnotes=window.userData.debitnotes.filter(x=>x.ref!=='${d.ref}');persistData();renderDebitNotes();" title="Delete" class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
-      </td>
-    </tr>
-  `).join('');
+  tbody.innerHTML = debitnotes.map((d, idx) => {
+    const opts = [
+      { label: 'Print Note', icon: 'fa-solid fa-print', color: 'text-blue-600', onclick: `openPrintInvoice('${d.ref}', 'DEBIT NOTE')` }
+    ];
+    if (!isEmp) {
+      opts.push({ label: 'Edit', icon: 'fa-solid fa-pen-to-square', color: 'text-amber-600', onclick: `editDebitNote('${d.ref}')` });
+      opts.push({ label: 'Delete', icon: 'fa-solid fa-trash', color: 'text-rose-600', onclick: `window.userData.debitnotes=window.userData.debitnotes.filter(x=>x.ref!=='${d.ref}');persistData();renderDebitNotes();` });
+    }
+    return `
+      <tr class="border-b border-slate-100 hover:bg-slate-50">
+        <td class="p-3 font-mono font-bold text-rose-600">${d.ref}</td>
+        <td class="p-3 font-bold">${d.party}</td>
+        <td class="p-3 font-mono">${d.origInv}</td>
+        <td class="p-3">${d.item} (x${d.qty})</td>
+        <td class="p-3 text-rose-700 font-medium">${d.reason}</td>
+        <td class="p-3 font-black">Rs ${d.amt}</td>
+        <td class="p-3 text-right">
+          ${renderActionDropdown(`act-deb-${idx}`, opts)}
+        </td>
+      </tr>
+    `;
+  }).join('');
 }
 
 function renderPatients() {
@@ -3224,20 +3342,27 @@ function renderPatients() {
   if (!tbody || !window.userData) return;
   const patients = window.userData.patients || [];
   const isEmp = isEmployeeRole();
-  tbody.innerHTML = patients.map((p, idx) => `
-    <tr class="border-b border-slate-100 hover:bg-slate-50">
-      <td class="p-3 font-bold">${p.name} <span class="text-xs text-slate-400">(${p.age}y)</span></td>
-      <td class="p-3">${p.gender} - ${p.address || ''}</td>
-      <td class="p-3 font-semibold text-slate-800">${p.doctor}</td>
-      <td class="p-3">${p.service}</td>
-      <td class="p-3 font-black text-emerald-600">Rs ${p.fee}</td>
-      <td class="p-3 text-right space-x-1">
-        <button onclick="openPrintPatientSlip(${idx})" title="Print Slip" class="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs"><i class="fa-solid fa-print"></i></button>
-        ${!isEmp ? `<button onclick="editPatient(${idx})" title="Edit" class="p-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs"><i class="fa-solid fa-pen-to-square"></i></button>` : ''}
-        ${!isEmp ? `<button onclick="deletePatient(${idx})" title="Delete" class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
-      </td>
-    </tr>
-  `).join('');
+  tbody.innerHTML = patients.map((p, idx) => {
+    const opts = [
+      { label: 'Print Slip', icon: 'fa-solid fa-print', color: 'text-blue-600', onclick: `openPrintPatientSlip(${idx})` }
+    ];
+    if (!isEmp) {
+      opts.push({ label: 'Edit', icon: 'fa-solid fa-pen-to-square', color: 'text-amber-600', onclick: `editPatient(${idx})` });
+      opts.push({ label: 'Delete', icon: 'fa-solid fa-trash', color: 'text-rose-600', onclick: `deletePatient(${idx})` });
+    }
+    return `
+      <tr class="border-b border-slate-100 hover:bg-slate-50">
+        <td class="p-3 font-bold">${p.name} <span class="text-xs text-slate-400">(${p.age}y)</span></td>
+        <td class="p-3">${p.gender} - ${p.address || ''}</td>
+        <td class="p-3 font-semibold text-slate-800">${p.doctor}</td>
+        <td class="p-3">${p.service}</td>
+        <td class="p-3 font-black text-emerald-600">Rs ${p.fee}</td>
+        <td class="p-3 text-right">
+          ${renderActionDropdown(`act-pat-${idx}`, opts)}
+        </td>
+      </tr>
+    `;
+  }).join('');
 }
 
 function deletePatient(idx) {
@@ -3255,19 +3380,26 @@ function renderPurchases() {
   if (!tbody || !window.userData) return;
   const purchases = window.userData.purchases || [];
   const isEmp = isEmployeeRole();
-  tbody.innerHTML = purchases.map(p => `
-    <tr class="border-b border-slate-100 hover:bg-slate-50">
-      <td class="p-3 font-mono font-bold text-emerald-600">${p.ref}</td>
-      <td class="p-3 font-bold">${p.supplier}</td>
-      <td class="p-3">${p.item}</td>
-      <td class="p-3 font-black">Rs ${p.amt.toLocaleString()}</td>
-      <td class="p-3 text-right space-x-1">
-        <button onclick="openPrintInvoice('${p.ref}', 'PURCHASE ORDER')" title="Print" class="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs"><i class="fa-solid fa-print"></i></button>
-        ${!isEmp ? `<button onclick="editPurchase('${p.ref}')" title="Edit" class="p-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs"><i class="fa-solid fa-pen-to-square"></i></button>` : ''}
-        ${!isEmp ? `<button onclick="window.userData.purchases=window.userData.purchases.filter(x=>x.ref!=='${p.ref}');persistData();renderPurchases();" title="Delete" class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
-      </td>
-    </tr>
-  `).join('');
+  tbody.innerHTML = purchases.map((p, idx) => {
+    const opts = [
+      { label: 'Print PO', icon: 'fa-solid fa-print', color: 'text-blue-600', onclick: `openPrintInvoice('${p.ref}', 'PURCHASE ORDER')` }
+    ];
+    if (!isEmp) {
+      opts.push({ label: 'Edit', icon: 'fa-solid fa-pen-to-square', color: 'text-amber-600', onclick: `editPurchase('${p.ref}')` });
+      opts.push({ label: 'Delete', icon: 'fa-solid fa-trash', color: 'text-rose-600', onclick: `window.userData.purchases=window.userData.purchases.filter(x=>x.ref!=='${p.ref}');persistData();renderPurchases();` });
+    }
+    return `
+      <tr class="border-b border-slate-100 hover:bg-slate-50">
+        <td class="p-3 font-mono font-bold text-emerald-600">${p.ref}</td>
+        <td class="p-3 font-bold">${p.supplier}</td>
+        <td class="p-3">${p.item}</td>
+        <td class="p-3 font-black">Rs ${p.amt.toLocaleString()}</td>
+        <td class="p-3 text-right">
+          ${renderActionDropdown(`act-pur-${idx}`, opts)}
+        </td>
+      </tr>
+    `;
+  }).join('');
 }
 
 function renderPayouts() {
@@ -3275,18 +3407,26 @@ function renderPayouts() {
   if (!tbody || !window.userData) return;
   const payouts = window.userData.payouts || [];
   const isEmp = isEmployeeRole();
-  tbody.innerHTML = payouts.map(p => `
-    <tr class="border-b border-slate-100 hover:bg-slate-50">
-      <td class="p-3 font-mono font-bold text-purple-600">${p.voucher}</td>
-      <td class="p-3 font-bold">${p.recipient}</td>
-      <td class="p-3">${p.mode}</td>
-      <td class="p-3 font-black text-rose-600">Rs ${p.amount.toLocaleString()}</td>
-      <td class="p-3 text-right space-x-1">
-        ${!isEmp ? `<button onclick="editPayout('${p.voucher}')" title="Edit" class="p-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs"><i class="fa-solid fa-pen-to-square"></i></button>` : ''}
-        ${!isEmp ? `<button onclick="window.userData.payouts=window.userData.payouts.filter(x=>x.voucher!=='${p.voucher}');persistData();renderPayouts();" title="Delete" class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
-      </td>
-    </tr>
-  `).join('');
+  tbody.innerHTML = payouts.map((p, idx) => {
+    const opts = [
+      { label: 'Print Voucher', icon: 'fa-solid fa-print', color: 'text-blue-600', onclick: `openPrintVoucherCustom({docType:'PAYMENT OUT VOUCHER',invNo:p.voucher,invDate:new Date().toISOString().split('T')[0],recipient:p.recipient,address:'Finance Dept',itemName:'Payout Transaction',category:'Payout',mode:p.mode,amount:p.amount})` }
+    ];
+    if (!isEmp) {
+      opts.push({ label: 'Edit', icon: 'fa-solid fa-pen-to-square', color: 'text-amber-600', onclick: `editPayout('${p.voucher}')` });
+      opts.push({ label: 'Delete', icon: 'fa-solid fa-trash', color: 'text-rose-600', onclick: `window.userData.payouts=window.userData.payouts.filter(x=>x.voucher!=='${p.voucher}');persistData();renderPayouts();` });
+    }
+    return `
+      <tr class="border-b border-slate-100 hover:bg-slate-50">
+        <td class="p-3 font-mono font-bold text-purple-600">${p.voucher}</td>
+        <td class="p-3 font-bold">${p.recipient}</td>
+        <td class="p-3">${p.mode}</td>
+        <td class="p-3 font-black text-rose-600">Rs ${p.amount.toLocaleString()}</td>
+        <td class="p-3 text-right">
+          ${renderActionDropdown(`act-pay-${idx}`, opts)}
+        </td>
+      </tr>
+    `;
+  }).join('');
 }
 
 function renderExpenses() {
@@ -3294,22 +3434,29 @@ function renderExpenses() {
   if (!tbody || !window.userData) return;
   const expenses = window.userData.expenses || [];
   const isEmp = isEmployeeRole();
-  tbody.innerHTML = expenses.map(e => `
-    <tr class="border-b border-slate-100 hover:bg-slate-50">
-      <td class="p-3 font-mono font-bold text-rose-600">${e.ref}</td>
-      <td class="p-3">${e.date}</td>
-      <td class="p-3 font-bold text-slate-800">${e.category}</td>
-      <td class="p-3 text-slate-600">${e.desc}</td>
-      <td class="p-3 font-medium">${e.paidTo}</td>
-      <td class="p-3">${e.mode}</td>
-      <td class="p-3 font-black text-rose-600">Rs ${e.amount.toLocaleString()}</td>
-      <td class="p-3 text-right space-x-1">
-        <button onclick="openPrintExpenseSlip('${e.ref}')" title="Print Expense Voucher" class="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs"><i class="fa-solid fa-print"></i></button>
-        ${!isEmp ? `<button onclick="editExpense('${e.ref}')" title="Edit" class="p-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs"><i class="fa-solid fa-pen-to-square"></i></button>` : ''}
-        ${!isEmp ? `<button onclick="deleteExpense('${e.ref}')" title="Delete" class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
-      </td>
-    </tr>
-  `).join('');
+  tbody.innerHTML = expenses.map((e, idx) => {
+    const opts = [
+      { label: 'Print Voucher', icon: 'fa-solid fa-print', color: 'text-blue-600', onclick: `openPrintExpenseSlip('${e.ref}')` }
+    ];
+    if (!isEmp) {
+      opts.push({ label: 'Edit', icon: 'fa-solid fa-pen-to-square', color: 'text-amber-600', onclick: `editExpense('${e.ref}')` });
+      opts.push({ label: 'Delete', icon: 'fa-solid fa-trash', color: 'text-rose-600', onclick: `deleteExpense('${e.ref}')` });
+    }
+    return `
+      <tr class="border-b border-slate-100 hover:bg-slate-50">
+        <td class="p-3 font-mono font-bold text-rose-600">${e.ref}</td>
+        <td class="p-3">${e.date}</td>
+        <td class="p-3 font-bold text-slate-800">${e.category}</td>
+        <td class="p-3 text-slate-600">${e.desc}</td>
+        <td class="p-3 font-medium">${e.paidTo}</td>
+        <td class="p-3">${e.mode}</td>
+        <td class="p-3 font-black text-rose-600">Rs ${e.amount.toLocaleString()}</td>
+        <td class="p-3 text-right">
+          ${renderActionDropdown(`act-exp-${idx}`, opts)}
+        </td>
+      </tr>
+    `;
+  }).join('');
 }
 
 function deleteExpense(ref) {
@@ -3327,21 +3474,28 @@ function renderCashBank() {
   if (!tbody || !window.userData) return;
   const cashbank = window.userData.cashbank || [];
   const isEmp = isEmployeeRole();
-  tbody.innerHTML = cashbank.map(c => `
-    <tr class="border-b border-slate-100 hover:bg-slate-50">
-      <td class="p-3 font-mono font-bold text-emerald-600">${c.ref}</td>
-      <td class="p-3">${c.date}</td>
-      <td class="p-3 font-bold">${c.account}</td>
-      <td class="p-3 font-bold ${c.type.includes('In') ? 'text-emerald-600' : 'text-rose-600'}">${c.type}</td>
-      <td class="p-3 text-slate-600">${c.desc}</td>
-      <td class="p-3 font-black">Rs ${c.amount.toLocaleString()}</td>
-      <td class="p-3 text-right space-x-1">
-        <button onclick="openPrintCashBankSlip('${c.ref}')" title="Print Cash/Bank Voucher" class="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs"><i class="fa-solid fa-print"></i></button>
-        ${!isEmp ? `<button onclick="editCashBank('${c.ref}')" title="Edit" class="p-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs"><i class="fa-solid fa-pen-to-square"></i></button>` : ''}
-        ${!isEmp ? `<button onclick="deleteCashBank('${c.ref}')" title="Delete" class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
-      </td>
-    </tr>
-  `).join('');
+  tbody.innerHTML = cashbank.map((c, idx) => {
+    const opts = [
+      { label: 'Print Voucher', icon: 'fa-solid fa-print', color: 'text-blue-600', onclick: `openPrintCashBankSlip('${c.ref}')` }
+    ];
+    if (!isEmp) {
+      opts.push({ label: 'Edit', icon: 'fa-solid fa-pen-to-square', color: 'text-amber-600', onclick: `editCashBank('${c.ref}')` });
+      opts.push({ label: 'Delete', icon: 'fa-solid fa-trash', color: 'text-rose-600', onclick: `deleteCashBank('${c.ref}')` });
+    }
+    return `
+      <tr class="border-b border-slate-100 hover:bg-slate-50">
+        <td class="p-3 font-mono font-bold text-emerald-600">${c.ref}</td>
+        <td class="p-3">${c.date}</td>
+        <td class="p-3 font-bold">${c.account}</td>
+        <td class="p-3 font-bold ${c.type.includes('In') ? 'text-emerald-600' : 'text-rose-600'}">${c.type}</td>
+        <td class="p-3 text-slate-600">${c.desc}</td>
+        <td class="p-3 font-black">Rs ${c.amount.toLocaleString()}</td>
+        <td class="p-3 text-right">
+          ${renderActionDropdown(`act-cb-${idx}`, opts)}
+        </td>
+      </tr>
+    `;
+  }).join('');
 }
 
 function deleteCashBank(ref) {
@@ -3359,20 +3513,28 @@ function renderOtherIncome() {
   if (!tbody || !window.userData) return;
   const otherincome = window.userData.otherincome || [];
   const isEmp = isEmployeeRole();
-  tbody.innerHTML = otherincome.map(i => `
-    <tr class="border-b border-slate-100 hover:bg-slate-50">
-      <td class="p-3 font-mono font-bold text-amber-600">${i.ref}</td>
-      <td class="p-3">${i.date}</td>
-      <td class="p-3 font-bold">${i.source}</td>
-      <td class="p-3 text-slate-600">${i.desc}</td>
-      <td class="p-3">${i.account}</td>
-      <td class="p-3 font-black text-emerald-600">Rs ${i.amount.toLocaleString()}</td>
-      <td class="p-3 text-right space-x-1">
-        ${!isEmp ? `<button onclick="editIncome('${i.ref}')" title="Edit" class="p-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs"><i class="fa-solid fa-pen-to-square"></i></button>` : ''}
-        ${!isEmp ? `<button onclick="deleteOtherIncome('${i.ref}')" title="Delete" class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
-      </td>
-    </tr>
-  `).join('');
+  tbody.innerHTML = otherincome.map((i, idx) => {
+    const opts = [
+      { label: 'Print Slip', icon: 'fa-solid fa-print', color: 'text-blue-600', onclick: `openPrintVoucherCustom({docType:'OTHER INCOME RECEIPT',invNo:i.ref,invDate:i.date,recipient:i.source,address:i.account,itemName:i.desc,category:'Other Income',mode:'Receipt',amount:i.amount})` }
+    ];
+    if (!isEmp) {
+      opts.push({ label: 'Edit', icon: 'fa-solid fa-pen-to-square', color: 'text-amber-600', onclick: `editIncome('${i.ref}')` });
+      opts.push({ label: 'Delete', icon: 'fa-solid fa-trash', color: 'text-rose-600', onclick: `deleteOtherIncome('${i.ref}')` });
+    }
+    return `
+      <tr class="border-b border-slate-100 hover:bg-slate-50">
+        <td class="p-3 font-mono font-bold text-amber-600">${i.ref}</td>
+        <td class="p-3">${i.date}</td>
+        <td class="p-3 font-bold">${i.source}</td>
+        <td class="p-3 text-slate-600">${i.desc}</td>
+        <td class="p-3">${i.account}</td>
+        <td class="p-3 font-black text-emerald-600">Rs ${i.amount.toLocaleString()}</td>
+        <td class="p-3 text-right">
+          ${renderActionDropdown(`act-inc-${idx}`, opts)}
+        </td>
+      </tr>
+    `;
+  }).join('');
 }
 
 function deleteOtherIncome(ref) {
