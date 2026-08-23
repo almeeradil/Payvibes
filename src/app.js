@@ -1,4 +1,4 @@
-// Payvibes Enterprise ERP Application Logic (Vanilla JS & HTML Engine)
+// Posvibe Enterprise ERP Application Logic (Vanilla JS & HTML Engine)
 
 let salesChartInstance = null;
 let payoutChartInstance = null;
@@ -3164,7 +3164,7 @@ function renderQuotations() {
       <td class="p-3 text-emerald-600">${q.discount}</td>
       <td class="p-3">${q.date}</td>
       <td class="p-3 text-right space-x-1">
-        <button onclick="openPrintInvoice('${q.qno}', 'SALES QUOTATION')" title="Print" class="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs"><i class="fa-solid fa-print"></i></button>
+        <button onclick="openPrintInvoice('${q.qno}', 'POSVIBE ESTIMATE')" title="Print" class="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs"><i class="fa-solid fa-print"></i></button>
         ${!isEmp ? `<button onclick="editQuotation('${q.qno}')" title="Edit" class="p-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs"><i class="fa-solid fa-pen-to-square"></i></button>` : ''}
         ${!isEmp ? `<button onclick="window.userData.quotations=window.userData.quotations.filter(x=>x.qno!=='${q.qno}');persistData();renderQuotations();" title="Delete" class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
       </td>
