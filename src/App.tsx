@@ -70,7 +70,7 @@ import { StockTransferModal } from './components/StockTransferModal';
 
 export default function App() {
   const [data, setData] = useState<AppStateData>(() => getStoredData());
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem('erp-is-logged-in') === 'true');
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [theme, setTheme] = useState<Theme>('light');
 
@@ -120,10 +120,12 @@ export default function App() {
       auditLogs: updatedLogs,
     }));
     setIsLoggedIn(true);
+    localStorage.setItem('erp-is-logged-in', 'true');
   };
 
   const handleLogout = () => {
     setIsLoggedIn(false);
+    localStorage.removeItem('erp-is-logged-in');
   };
 
   const handleRoleChange = (role: UserRole) => {
@@ -193,6 +195,23 @@ export default function App() {
       ...prev,
       orders: [invoice, ...prev.orders],
       customers: updatedCustomers,
+      auditLogs: updatedLogs,
+    }));
+  };
+
+  const handleSaveQuotation = (q: Quotation) => {
+    const updatedLogs = createAuditEntry(
+      data.auditLogs,
+      data.currentUser,
+      data.currentUserRole,
+      'CREATE_QUOTATION',
+      'Sales',
+      `Generated Quotation #${q.qno} for ${q.customer}.`
+    );
+
+    setData(prev => ({
+      ...prev,
+      quotations: [q, ...(prev.quotations || [])],
       auditLogs: updatedLogs,
     }));
   };
@@ -717,7 +736,7 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'sales' && (
+          {activeTab === 'orders' && (
             <SalesTab
               orders={data.orders}
               customers={data.customers}
@@ -729,6 +748,19 @@ export default function App() {
                 setSelectedEwayInvoice(inv);
                 setShowEwayModal(true);
               }}
+              onDeleteOrder={(id) => handleDeleteDocument('orders', id, 'Sales Invoice')}
+            />
+          )}
+
+          {activeTab === 'quotations' && (
+            <QuotationsTab
+              quotations={data.quotations || []}
+              customers={data.customers}
+              inventory={data.inventory}
+              settings={data.settings}
+              userRole={data.currentUserRole}
+              onSaveQuotation={handleSaveQuotation}
+              onDeleteQuotation={(id) => handleDeleteDocument('quotations', id, 'Quotation')}
             />
           )}
 
@@ -740,6 +772,7 @@ export default function App() {
               settings={data.settings}
               userRole={data.currentUserRole}
               onAddPurchase={handleAddPurchase}
+              onDeletePurchase={(id) => handleDeleteDocument('purchases', id, 'Purchase Order')}
             />
           )}
 
@@ -749,6 +782,7 @@ export default function App() {
               settings={data.settings}
               userRole={data.currentUserRole}
               onAddExpense={handleAddExpense}
+              onDeleteExpense={(id) => handleDeleteDocument('expenses', id, 'Expense Voucher')}
             />
           )}
 
@@ -769,6 +803,8 @@ export default function App() {
               settings={data.settings}
               onAddCustomer={handleAddCustomer}
               onAddSupplier={handleAddSupplier}
+              onDeleteCustomer={(id) => handleDeleteDocument('customers', id, 'Customer Profile')}
+              onDeleteSupplier={(id) => handleDeleteDocument('suppliers', id, 'Supplier Profile')}
             />
           )}
 
