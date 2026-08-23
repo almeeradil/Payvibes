@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Payvibes</title>
+  <title>Posvibe</title>
   <link rel="manifest" href="manifest.json">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -114,13 +114,13 @@
   <!-- Login & Lock Screen (Matched to uploaded design spec) -->
   <div id="loginScreen" class="fixed inset-0 bg-[#0c1322] z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 sm:p-10 border border-slate-100 text-slate-900 relative">
-      <!-- Circular Red Icon with Payvibes Logo -->
-      <div class="w-16 h-16 rounded-full bg-red-600 flex items-center justify-center mx-auto mb-4 p-3 shadow-md border-2 border-red-500/20">
-        <img src="https://raw.githubusercontent.com/zuraizadil32-cyber/Payvubes/main/logo.png" alt="Payvibes logo" class="w-full h-full object-contain">
+      <!-- Circular Red Icon with Posvibe Logo -->
+      <div class="w-16 h-16 rounded-full bg-slate-900 flex items-center justify-center mx-auto mb-4 p-2 shadow-md border-2 border-orange-500/20">
+        <img src="https://zuraizadil32-cyber.github.io/Payvubes/logo.png" alt="Posvibe logo" class="w-full h-full object-contain">
       </div>
 
       <!-- Title & Subtitle -->
-      <h1 class="text-2xl font-black text-slate-900 text-center tracking-tight">Payvibes</h1>
+      <h1 class="text-2xl font-black text-slate-900 text-center tracking-tight">Posvibe</h1>
       <p class="text-xs text-slate-500 text-center mt-1 mb-6 font-medium">Sign in with your authorized system credentials</p>
 
       <form onsubmit="handleLogin(event)" class="space-y-4">
@@ -161,9 +161,9 @@
     <aside class="w-64 bg-white text-slate-700 flex flex-col border-r border-slate-200 shadow-sm z-20 shrink-0">
       <div class="p-4 border-b border-slate-100 flex items-center justify-between">
         <div class="flex items-center space-x-3">
-          <img src="https://raw.githubusercontent.com/zuraizadil32-cyber/Payvubes/main/logo.png" alt="Payvibes logo" class="w-9 h-9 rounded-lg object-contain shadow border border-orange-500/30 p-0.5 bg-red-600">
+          <img src="https://zuraizadil32-cyber.github.io/Payvubes/logo.png" alt="Posvibe logo" class="w-9 h-9 rounded-lg object-contain shadow border border-orange-500/30 p-0.5 bg-slate-900">
           <div>
-            <h2 class="font-extrabold text-slate-900 text-sm tracking-tight">Payvibes</h2>
+            <h2 class="font-extrabold text-slate-900 text-sm tracking-tight">Posvibe</h2>
             <span class="text-[10px] text-orange-600 font-bold uppercase tracking-wider bg-orange-50 px-2 py-0.5 rounded border border-orange-200" id="userRoleDisplay">Admin</span>
           </div>
         </div>
@@ -181,7 +181,7 @@
         </button>
         <div id="menu-sales" class="hidden pl-4 space-y-1 py-1 border-l-2 border-slate-100 ml-4">
           <button onclick="showTab('orders')" data-tab="orders" class="nav-tab-btn w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 flex items-center transition"><i class="fa-solid fa-file-invoice text-orange-500 w-4 mr-2"></i>Sales Tax Invoices</button>
-          <button onclick="showTab('quotations')" data-tab="quotations" class="nav-tab-btn w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 flex items-center transition"><i class="fa-solid fa-file-lines text-orange-500 w-4 mr-2"></i>Estimates &amp; Quotations</button>
+          <button onclick="showTab('quotations')" data-tab="quotations" class="nav-tab-btn w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 flex items-center transition"><i class="fa-solid fa-file-lines text-orange-500 w-4 mr-2"></i>Estimates &amp; Posvibes</button>
           <button onclick="showTab('debitnotes')" data-tab="debitnotes" class="nav-tab-btn w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 flex items-center transition"><i class="fa-solid fa-rotate-left text-rose-500 w-4 mr-2"></i>Sales Returns</button>
           <button onclick="showTab('ewaybill')" data-tab="ewaybill" class="nav-tab-btn w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 flex items-center transition"><i class="fa-solid fa-truck-fast text-cyan-500 w-4 mr-2"></i>E-Way Bill &amp; IRN</button>
           <button onclick="showTab('reminders')" data-tab="reminders" class="nav-tab-btn w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 flex items-center transition"><i class="fa-brands fa-whatsapp text-emerald-500 w-4 mr-2"></i>WhatsApp Reminders</button>
@@ -809,8 +809,8 @@
         <!-- Existing Tabs (Quotations, Debit Notes, Patients, Inventory, Customers, Suppliers, Purchases, Payouts, Expenses, CashBank, OtherIncome, Barcode, Settings, Help, Reports, Grow) -->
         <div id="tab-quotations" class="tab-content hidden space-y-4">
           <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-            <h4 class="text-sm font-bold text-slate-800">Generated Quotations</h4>
-            <button onclick="openModal('quotationModal')" class="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-bold text-xs shadow transition">Create Quotation</button>
+            <h4 class="text-sm font-bold text-slate-800">Generated Posvibes</h4>
+            <button onclick="openModal('quotationModal')" class="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-bold text-xs shadow transition">Create Posvibe</button>
           </div>
           <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <table class="w-full text-xs text-left border-collapse">
@@ -1291,7 +1291,7 @@
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <span class="text-xs font-black uppercase text-amber-600 tracking-wider">Payvibes Gateway</span>
+              <span class="text-xs font-black uppercase text-amber-600 tracking-wider">Posvibe Gateway</span>
               <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[9px] font-black rounded-full"><i class="fa-solid fa-bolt mr-1"></i> Auto-Receive</span>
             </div>
             <h3 class="text-lg font-black text-slate-900">Annual License Payment Gateway</h3>
@@ -1318,7 +1318,7 @@
               <i class="fa-solid fa-copy"></i> Copy Number
             </button>
           </div>
-          <div class="text-[10px] text-slate-300">Account Title: <strong>Payvibes Enterprise Solutions (JazzCash / EasyPaisa / Raast)</strong></div>
+          <div class="text-[10px] text-slate-300">Account Title: <strong>Posvibe Enterprise Solutions (JazzCash / EasyPaisa / Raast)</strong></div>
         </div>
       </div>
 
@@ -1727,7 +1727,7 @@
   <div id="quotationModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
       <div class="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
-        <h3 class="font-extrabold text-slate-900 text-base">Generate Quotation</h3>
+        <h3 class="font-extrabold text-slate-900 text-base">Generate Posvibe</h3>
         <button onclick="closeModal('quotationModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
       <div class="space-y-4 text-xs">
@@ -1739,7 +1739,7 @@
         </div>
         <div class="flex justify-end space-x-2 pt-2">
           <button type="button" onclick="closeModal('quotationModal')" class="px-4 py-2 border rounded-lg font-bold text-slate-600">Cancel</button>
-          <button type="button" onclick="saveQuotation()" class="px-4 py-2 bg-orange-500 text-white rounded-lg font-bold shadow">Save Quotation</button>
+          <button type="button" onclick="saveQuotation()" class="px-4 py-2 bg-orange-500 text-white rounded-lg font-bold shadow">Save Posvibe</button>
         </div>
       </div>
     </div>
@@ -2187,7 +2187,7 @@
           <div class="border border-slate-300 border-t-0 p-3 grid grid-cols-2 gap-4 text-[10.5px]">
             <div>
               <div class="font-bold text-slate-600 text-[10px] uppercase">FROM (Consignor / Supplier):</div>
-              <div class="font-black text-slate-900" id="prEwbFromName">Payvibes Pharma &amp; General Store</div>
+              <div class="font-black text-slate-900" id="prEwbFromName">Posvibe Pharma &amp; General Store</div>
               <div class="text-slate-600" id="prEwbFromAddress">Main Commercial Plaza, Lahore, Pakistan</div>
               <div class="font-mono text-slate-700">NTN: <span id="prEwbFromNtn">NTN-7890123-4</span></div>
             </div>
@@ -2259,7 +2259,7 @@
 
         <!-- Footer -->
         <div class="text-center pt-4 border-t border-slate-300 mt-4 text-[9px] text-slate-500">
-          <div>Generated by Payvibes Invoicematic ERP | Certified Electronic Transport Document</div>
+          <div>Generated by Posvibe Invoicematic ERP | Certified Electronic Transport Document</div>
         </div>
       </div>
     </div>
@@ -2327,7 +2327,7 @@
       <div class="no-print bg-slate-900 px-6 py-3.5 flex items-center justify-between border-b border-slate-800 text-white">
         <div class="flex items-center gap-2">
           <i class="fa-solid fa-print text-orange-500"></i>
-          <span class="font-bold text-sm">Official Invoice Print &amp; Export Preview</span>
+          <span class="font-bold text-sm">Official Posvibe &amp; Export Preview</span>
         </div>
         <div class="flex items-center gap-2">
           <button onclick="printDocument('printInvoiceArea')" class="px-4 py-1.5 bg-orange-600 hover:bg-orange-500 text-white rounded-lg font-bold text-xs shadow-md flex items-center gap-1.5 transition cursor-pointer">
@@ -2346,7 +2346,7 @@
       <div id="printInvoiceArea" class="p-8 sm:p-12 bg-white text-black font-sans text-[11px] leading-relaxed relative">
         <!-- Subtle Background Watermark -->
         <div class="absolute inset-0 flex items-center justify-center opacity-[0.035] pointer-events-none select-none">
-          <img src="https://raw.githubusercontent.com/zuraizadil32-cyber/Payvubes/main/logo.png" alt="watermark" class="w-96 h-96 object-contain">
+          <img src="https://zuraizadil32-cyber.github.io/Payvubes/logo.png" alt="watermark" class="w-96 h-96 object-contain">
         </div>
 
         <!-- Document Header Bar with Blue Accent Line -->
@@ -2358,10 +2358,10 @@
             <img id="prCompanyLogo" src="" alt="Company Logo" class="w-20 h-20 object-contain hidden">
           </div>
           <div class="flex-1 flex items-center justify-end gap-2.5">
-            <div class="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center text-white font-black text-xs shadow-sm overflow-hidden p-1">
-              <img src="https://raw.githubusercontent.com/zuraizadil32-cyber/Payvubes/main/logo.png" alt="Payvibes Logo" class="w-full h-full object-contain">
+            <div class="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-white font-black text-xs shadow-sm overflow-hidden p-0.5">
+              <img src="https://zuraizadil32-cyber.github.io/Payvubes/logo.png" alt="Posvibe Logo" class="w-full h-full object-contain">
             </div>
-            <span class="text-2xl font-black text-red-600 tracking-tight font-sans">Payvibes</span>
+            <span class="text-2xl font-black text-red-600 tracking-tight font-sans">Posvibe</span>
           </div>
         </div>
 
@@ -2370,7 +2370,7 @@
           <!-- Left Column -->
           <div class="space-y-4">
             <div>
-              <div id="prCompanyName" class="font-extrabold text-xs text-slate-900 uppercase tracking-wide">PAYVIBES PHARMA &amp; GENERAL STORE</div>
+              <div id="prCompanyName" class="font-extrabold text-xs text-slate-900 uppercase tracking-wide">POSVIBE PHARMA &amp; GENERAL STORE</div>
               <div class="text-[10px] space-y-0.5 text-slate-700 mt-1">
                 <div><span class="font-bold">ADDRESS : </span><span id="prCompanyAddress">Main Commercial Plaza, Ferozepur Road</span></div>
                 <div><span class="font-bold">STREET ADDRESS : </span><span id="prCompanyStreet">Shop # 12, Ground Floor</span></div>
@@ -2483,10 +2483,10 @@
           <div class="text-[8px] text-slate-500">DISCLAIMER : This is a computer generated invoice. The amount shown is digitally calculated</div>
           <div class="flex justify-end items-center gap-1.5 text-[10px] font-bold text-slate-700 pt-2">
             <span class="text-slate-400">Powered by</span>
-            <div class="w-3.5 h-3.5 rounded bg-red-600 p-0.5 flex items-center justify-center">
-              <img src="https://raw.githubusercontent.com/zuraizadil32-cyber/Payvubes/main/logo.png" alt="logo" class="w-full h-full object-contain">
+            <div class="w-3.5 h-3.5 rounded bg-slate-900 p-0.5 flex items-center justify-center">
+              <img src="https://zuraizadil32-cyber.github.io/Payvubes/logo.png" alt="logo" class="w-full h-full object-contain">
             </div>
-            <span class="font-extrabold text-red-600">Payvibes</span>
+            <span class="font-extrabold text-red-600">Posvibe</span>
           </div>
         </div>
       </div>
