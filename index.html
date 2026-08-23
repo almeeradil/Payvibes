@@ -346,36 +346,6 @@
             </div>
           </div>
 
-          <!-- Dashboard Inventory & Stock Management Card -->
-          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
-            <div class="flex justify-between items-center">
-              <div>
-                <h4 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                  <i class="fa-solid fa-boxes-stacked text-orange-500"></i>
-                  <span>Dashboard Inventory &amp; Stock Control</span>
-                </h4>
-                <p class="text-[11px] text-slate-500">Quickly view, edit, or delete inventory items directly from the dashboard.</p>
-              </div>
-              <button onclick="showTab('inventory')" class="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-bold text-xs shadow transition">Manage Full Stock</button>
-            </div>
-            <div class="overflow-x-auto rounded-xl border border-slate-200">
-              <table class="w-full text-xs text-left border-collapse">
-                <thead class="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 font-bold">
-                  <tr>
-                    <th class="p-3">Item Name</th>
-                    <th class="p-3">Batch #</th>
-                    <th class="p-3">Stock</th>
-                    <th class="p-3">Unit</th>
-                    <th class="p-3">Expiry Date</th>
-                    <th class="p-3">Sale Price</th>
-                    <th class="p-3 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="dashboardInventoryTableBody"></tbody>
-              </table>
-            </div>
-          </div>
-
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
               <h4 class="text-sm font-bold text-slate-800 mb-4">Sales Revenue Growth</h4>
@@ -1038,6 +1008,7 @@
                 <div class="text-[10px] uppercase font-bold text-slate-500">Total Expense</div>
                 <div id="stat-expenseTotal" class="text-lg font-black text-rose-600">Rs 0</div>
               </div>
+              <button onclick="window.print()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg font-bold text-xs shadow transition flex items-center gap-1"><i class="fa-solid fa-print"></i><span>Print Expense Report</span></button>
               <button onclick="openModal('expenseModal')" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-bold text-xs shadow transition">Add Expense</button>
             </div>
           </div>
@@ -1078,6 +1049,7 @@
           <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
             <h4 class="text-sm font-bold text-slate-800">Cash &amp; Bank Transactions</h4>
             <div class="flex items-center gap-2">
+              <button onclick="window.print()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg font-bold text-xs shadow transition flex items-center gap-1"><i class="fa-solid fa-print"></i><span>Print Statement</span></button>
               <button onclick="openModal('cashbankModal')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs shadow transition">New Transaction</button>
             </div>
           </div>
@@ -1110,6 +1082,7 @@
                 <div class="text-[10px] uppercase font-bold text-slate-500">Total Other Income</div>
                 <div id="stat-incomeTotal" class="text-lg font-black text-emerald-600">Rs 0</div>
               </div>
+              <button onclick="window.print()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg font-bold text-xs shadow transition flex items-center gap-1"><i class="fa-solid fa-print"></i><span>Print Income List</span></button>
               <button onclick="openModal('incomeModal')" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-bold text-xs shadow transition">Add Income</button>
             </div>
           </div>
