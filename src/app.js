@@ -735,40 +735,53 @@ function setupAutocomplete(inputId, dropdownId, onSelectCallback) {
   const dropdown = document.getElementById(dropdownId);
   if (!input || !dropdown) return;
 
-  input.addEventListener('input', () => {
+  function renderDropdown() {
     const val = input.value.trim().toLowerCase();
-    if (!val) {
-      dropdown.classList.add('hidden');
-      return;
-    }
+    // Only show medicines that we added in the inventory and stock
+    const invList = (window.userData?.inventory || []);
 
-    const medList = typeof masterMedicinesList !== 'undefined' ? masterMedicinesList : [];
-    const invList = (window.userData?.inventory || []).map(i => i.name);
-    const combined = Array.from(new Set([...invList, ...medList]));
-    const matches = combined.filter(m => m.toLowerCase().includes(val)).slice(0, 8);
+    let matches = invList;
+    if (val) {
+      matches = invList.filter(i => i.name.toLowerCase().includes(val));
+    }
 
     if (matches.length === 0) {
       dropdown.classList.add('hidden');
       return;
     }
 
-    dropdown.innerHTML = matches.map(m => `
-      <div class="px-3 py-2 text-xs font-semibold hover:bg-orange-50 cursor-pointer border-b border-slate-100 last:border-0" data-name="${m}">
-        <i class="fa-solid fa-pills text-orange-500 mr-1.5"></i> ${m}
-      </div>
-    `).join('');
+    dropdown.innerHTML = matches.map(i => {
+      const stockQty = i.stock !== undefined ? i.stock : 0;
+      const priceVal = i.salePrice || i.price || i.purchasePrice || 0;
+      return `
+        <div class="px-3 py-2 text-xs font-semibold hover:bg-orange-50 cursor-pointer border-b border-slate-100 last:border-0 flex justify-between items-center" data-name="${i.name}">
+          <div>
+            <i class="fa-solid fa-pills text-orange-500 mr-1.5"></i> <span>${i.name}</span>
+            ${i.batch ? `<span class="text-[10px] text-slate-400 ml-1.5">(Batch: ${i.batch})</span>` : ''}
+          </div>
+          <div class="text-[10px] font-bold text-slate-600">
+            Stock: <span class="${stockQty > 0 ? 'text-emerald-600' : 'text-rose-600'}">${stockQty}</span> | Rs ${priceVal}
+          </div>
+        </div>
+      `;
+    }).join('');
 
     dropdown.classList.remove('hidden');
 
     dropdown.querySelectorAll('div[data-name]').forEach(item => {
-      item.addEventListener('click', () => {
+      item.addEventListener('click', (e) => {
+        e.stopPropagation();
         const selected = item.getAttribute('data-name');
         input.value = selected;
         dropdown.classList.add('hidden');
         if (onSelectCallback) onSelectCallback(selected);
       });
     });
-  });
+  }
+
+  input.addEventListener('focus', renderDropdown);
+  input.addEventListener('click', renderDropdown);
+  input.addEventListener('input', renderDropdown);
 
   document.addEventListener('click', (e) => {
     if (!input.contains(e.target) && !dropdown.contains(e.target)) {
@@ -1036,17 +1049,18 @@ function openPrintPatientSlip(idx) {
   const pat = window.userData.patients[idx];
   if (!pat) return alert("Patient record not found.");
 
-  openPrintVoucherCustom({
-    docType: 'PATIENT CLINICAL RECEIPT',
-    invNo: `PAT-${1001 + idx}`,
-    invDate: new Date().toISOString().split('T')[0],
-    recipient: `${pat.name} (${pat.age}y - ${pat.gender})`,
-    address: pat.address || 'OPD Department',
-    itemName: `Medical Service: ${pat.service} (Attending Doctor: ${pat.doctor})`,
-    category: 'Patient Medical Fee',
-    mode: 'Cash OPD',
-    amount: pat.fee || 0
-  });
+  const settings = window.userData.settings || {};
+  if (document.getElementById('prPatClinicName')) document.getElementById('prPatClinicName').innerText = settings.company || 'Posvibe Healthcare Clinic';
+  if (document.getElementById('prPatDate')) document.getElementById('prPatDate').innerText = new Date().toISOString().split('T')[0];
+  if (document.getElementById('prPatName')) document.getElementById('prPatName').innerText = pat.name || 'N/A';
+  if (document.getElementById('prPatAge')) document.getElementById('prPatAge').innerText = pat.age ? `${pat.age} Years` : 'N/A';
+  if (document.getElementById('prPatGender')) document.getElementById('prPatGender').innerText = pat.gender || 'N/A';
+  if (document.getElementById('prPatAddress')) document.getElementById('prPatAddress').innerText = pat.address || 'N/A';
+  if (document.getElementById('prPatDoctor')) document.getElementById('prPatDoctor').innerText = pat.doctor || 'N/A';
+  if (document.getElementById('prPatService')) document.getElementById('prPatService').innerText = pat.service || 'Consultation & Checkup';
+  if (document.getElementById('prPatFee')) document.getElementById('prPatFee').innerText = `Rs ${Number(pat.fee || 0).toFixed(2)}`;
+
+  openModal('printPatientModal');
 }
 
 window.openPrintVoucherCustom = openPrintVoucherCustom;
@@ -1237,6 +1251,8 @@ function editPatient(idx) {
   if (document.getElementById('patName')) document.getElementById('patName').value = pat.name;
   if (document.getElementById('patAge')) document.getElementById('patAge').value = pat.age;
   if (document.getElementById('patGender')) document.getElementById('patGender').value = pat.gender;
+  if (document.getElementById('patAddress')) document.getElementById('patAddress').value = pat.address || '';
+  if (document.getElementById('patService')) document.getElementById('patService').value = pat.service || '';
   if (document.getElementById('patDoctor')) document.getElementById('patDoctor').value = pat.doctor;
   if (document.getElementById('patFee')) document.getElementById('patFee').value = pat.fee;
   openModal('patientModal');
@@ -1525,6 +1541,8 @@ function savePatient() {
   const name = document.getElementById('patName')?.value.trim();
   const age = document.getElementById('patAge')?.value || '30';
   const gender = document.getElementById('patGender')?.value || 'Male';
+  const address = document.getElementById('patAddress')?.value.trim() || 'Main City Street, House #14';
+  const service = document.getElementById('patService')?.value.trim() || 'Medical OPD Consultation';
   const doctor = document.getElementById('patDoctor')?.value || 'Dr. Ali';
   const fee = parseFloat(document.getElementById('patFee')?.value || 500);
 
@@ -1535,10 +1553,10 @@ function savePatient() {
     age: age,
     gender: gender,
     doctor: doctor,
-    service: 'Consultation & Checkup',
+    service: service,
     fee: fee,
     status: 'Paid',
-    address: 'City Center'
+    address: address
   };
 
   if (!window.userData.patients) window.userData.patients = [];
@@ -2795,11 +2813,18 @@ function renderStats() {
   const filteredOrders = filterByBranch(window.userData.orders || []);
   const totalSales = filteredOrders.reduce((sum, o) => sum + (o.amount || 0), 0);
   const totalPayout = filterByBranch(window.userData.payouts || []).reduce((sum, p) => sum + (p.amount || 0), 0);
+  const inventory = filterByBranch(window.userData.inventory || []);
+  const reorderPoint = (window.userData.settings && window.userData.settings.inventoryReorderPoint) || 20;
+  const lowStockCount = inventory.filter(i => (i.stock || 0) <= (i.minStockAlert || i.minStockLevel || reorderPoint)).length;
   
   if (document.getElementById('stat-dailysales')) document.getElementById('stat-dailysales').innerText = `Rs ${totalSales.toLocaleString()}`;
-  if (document.getElementById('stat-stock')) document.getElementById('stat-stock').innerText = `${filterByBranch(window.userData.inventory || []).length} Items`;
+  if (document.getElementById('stat-stock')) document.getElementById('stat-stock').innerText = `${inventory.length} Items`;
   if (document.getElementById('stat-customers')) document.getElementById('stat-customers').innerText = `${(window.userData.customers || []).length} Clients`;
   if (document.getElementById('stat-payout')) document.getElementById('stat-payout').innerText = `Rs ${totalPayout.toLocaleString()}`;
+  if (document.getElementById('stat-totalItems')) document.getElementById('stat-totalItems').innerText = `${inventory.length} Total Items`;
+  if (document.getElementById('stat-lowStockCount')) {
+    document.getElementById('stat-lowStockCount').innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <span>Low Stock: ${lowStockCount} items</span>`;
+  }
 
   const totalExp = filterByBranch(window.userData.expenses || []).reduce((sum, e) => sum + (e.amount || 0), 0);
   const expDisp = document.getElementById('stat-expenseTotal');
@@ -3343,7 +3368,6 @@ function renderOtherIncome() {
       <td class="p-3">${i.account}</td>
       <td class="p-3 font-black text-emerald-600">Rs ${i.amount.toLocaleString()}</td>
       <td class="p-3 text-right space-x-1">
-        <button onclick="openPrintOtherIncomeSlip('${i.ref}')" title="Print Income Receipt" class="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs"><i class="fa-solid fa-print"></i></button>
         ${!isEmp ? `<button onclick="editIncome('${i.ref}')" title="Edit" class="p-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs"><i class="fa-solid fa-pen-to-square"></i></button>` : ''}
         ${!isEmp ? `<button onclick="deleteOtherIncome('${i.ref}')" title="Delete" class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
       </td>
