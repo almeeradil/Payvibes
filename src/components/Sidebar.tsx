@@ -34,23 +34,25 @@ import {
 import { UserRole } from '../types';
 
 interface SidebarProps {
-  currentTab: string;
+  currentTab?: string;
+  activeTab?: string;
   onTabChange: (tab: string) => void;
   userRole: UserRole;
-  onLogout: () => void;
-  lowStockCount: number;
-  unreconciledCount: number;
-  pendingRemindersCount: number;
+  onLogout?: () => void;
+  lowStockCount?: number;
+  unreconciledCount?: number;
+  pendingRemindersCount?: number;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   currentTab,
+  activeTab,
   onTabChange,
   userRole,
   onLogout,
-  lowStockCount,
-  unreconciledCount,
-  pendingRemindersCount,
+  lowStockCount = 0,
+  unreconciledCount = 0,
+  pendingRemindersCount = 0,
 }) => {
   const [salesOpen, setSalesOpen] = useState(true);
   const [purchOpen, setPurchOpen] = useState(false);
@@ -58,20 +60,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [multiStoreOpen, setMultiStoreOpen] = useState(false);
   const [reportsOpen, setReportsOpen] = useState(false);
 
-  const isActive = (tab: string) => currentTab === tab;
+  const active = currentTab || activeTab || 'dashboard';
+  const isActive = (tab: string) => active === tab;
 
   return (
-    <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col shadow-xl z-20 select-none">
+    <aside className="w-64 bg-slate-900 dark:bg-slate-950 text-slate-300 flex flex-col shadow-xl z-20 select-none">
       {/* Brand Header */}
       <div className="p-4 border-b border-slate-800 flex items-center space-x-3 bg-slate-950/40">
         <img
-          src="https://raw.githubusercontent.com/zuraizadil32-cyber/Payvubes/main/logo.png"
-          alt="Payvibes logo"
-          className="w-10 h-10 rounded-lg object-contain shadow-sm ring-1 ring-white/10"
+          src="https://zuraizadil32-cyber.github.io/Payvubes/logo.png"
+          alt="Posvibe logo"
+          className="h-10 w-auto max-w-[120px] object-contain shadow-sm ring-1 ring-white/10 p-0.5 rounded-lg bg-slate-800"
         />
         <div className="overflow-hidden">
           <h2 className="font-extrabold text-white text-sm tracking-wide flex items-center gap-1.5">
-            Payvibes
+            Posvibe
           </h2>
           <div className="flex items-center gap-1.5 mt-0.5">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -104,7 +107,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <Store className="w-4 h-4 text-purple-400" />
             <span>Multi-Store &amp; HQ</span>
           </span>
-          {multiStoreOpen ? <ChevronDown className="w-3 h-3 text-slate-500" /> : <ChevronRight className="w-3 h-3 text-slate-500" />}
+          {multiStoreOpen ? <ChevronDown className="w-3 h-3 text-slate-500 dark:text-slate-400" /> : <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400" />}
         </button>
         {multiStoreOpen && (
           <div className="pl-7 space-y-0.5 py-1">
@@ -138,7 +141,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <FileSpreadsheet className="w-4 h-4 text-orange-500" />
             <span>Sales &amp; Billing</span>
           </span>
-          {salesOpen ? <ChevronDown className="w-3 h-3 text-slate-500" /> : <ChevronRight className="w-3 h-3 text-slate-500" />}
+          {salesOpen ? <ChevronDown className="w-3 h-3 text-slate-500 dark:text-slate-400" /> : <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400" />}
         </button>
         {salesOpen && (
           <div className="pl-7 space-y-0.5 py-1">
@@ -158,7 +161,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               }`}
             >
               <FileText className="w-3.5 h-3.5 mr-2 text-orange-400" />
-              Estimates &amp; Quotations
+              Estimates &amp; Posvibes
             </button>
             <button
               onClick={() => onTabChange('debitnotes')}
@@ -181,7 +184,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <Percent className="w-4 h-4 text-emerald-400" />
             <span>Tax &amp; Compliance</span>
           </span>
-          {taxFinanceOpen ? <ChevronDown className="w-3 h-3 text-slate-500" /> : <ChevronRight className="w-3 h-3 text-slate-500" />}
+          {taxFinanceOpen ? <ChevronDown className="w-3 h-3 text-slate-500 dark:text-slate-400" /> : <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400" />}
         </button>
         {taxFinanceOpen && (
           <div className="pl-7 space-y-0.5 py-1">
@@ -224,7 +227,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <Receipt className="w-4 h-4 text-emerald-400" />
             <span>Purchases &amp; PO</span>
           </span>
-          {purchOpen ? <ChevronDown className="w-3 h-3 text-slate-500" /> : <ChevronRight className="w-3 h-3 text-slate-500" />}
+          {purchOpen ? <ChevronDown className="w-3 h-3 text-slate-500 dark:text-slate-400" /> : <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400" />}
         </button>
         {purchOpen && (
           <div className="pl-7 space-y-0.5 py-1">
@@ -325,8 +328,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span>Inventory Stock</span>
           </span>
           {lowStockCount > 0 && (
-            <span className="text-[9px] bg-rose-500 text-white font-bold px-1.5 py-0.5 rounded-full animate-pulse">
-              {lowStockCount} Low
+            <span className="text-[10px] bg-rose-600 text-white font-black px-2 py-0.5 rounded-full animate-pulse flex items-center gap-1 shadow-xs border border-rose-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-slate-900 dark:bg-slate-950 dark:bg-slate-900 dark:bg-slate-950 animate-ping"></span>
+              <span>{lowStockCount} Low</span>
             </span>
           )}
         </button>
