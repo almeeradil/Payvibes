@@ -1,8 +1,9 @@
 {
-  "name": "Payvibes",
+  "name": "Posvibe",
   "description": "Comprehensive ERP with Invoicing, Statutory E-Way Bill & IRN E-Invoicing, GST & Tax Filing, TDS/TCS, Bank Reconciliation, Multi-Store HQ, Loyalty Wallet, Automated Reminders, and HR & Payroll.",
   "requestFramePermissions": [
-    "camera"
+    "camera",
+    "microphone"
   ],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
