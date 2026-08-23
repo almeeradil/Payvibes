@@ -22,6 +22,7 @@ interface PurchasesTabProps {
   settings: SystemSettings;
   userRole: string;
   onAddPurchase: (po: PurchaseOrder) => void;
+  onDeletePurchase?: (id: string) => void;
 }
 
 export const PurchasesTab: React.FC<PurchasesTabProps> = ({
@@ -31,6 +32,7 @@ export const PurchasesTab: React.FC<PurchasesTabProps> = ({
   settings,
   userRole,
   onAddPurchase,
+  onDeletePurchase,
 }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -226,6 +228,12 @@ export const PurchasesTab: React.FC<PurchasesTabProps> = ({
                           alert(`Purchase Order ${p.ref} duplicated as ${newPo.ref}`);
                         },
                       },
+                      ...(onDeletePurchase ? [{
+                        label: 'Delete Purchase Order',
+                        icon: <Trash2 className="w-3.5 h-3.5 text-rose-600" />,
+                        onClick: () => onDeletePurchase(p.id),
+                        variant: 'danger' as const,
+                      }] : []),
                     ]}
                   />
                 </td>
