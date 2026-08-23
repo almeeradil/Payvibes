@@ -8,9 +8,11 @@ import {
   FileSpreadsheet, 
   Plus, 
   ArrowRightLeft,
-  Sparkles
+  Sparkles,
+  Eye
 } from 'lucide-react';
 import { BankStatementRow, CashBankTransaction, SystemSettings } from '../types';
+import { RowActionsMenu } from './RowActionsMenu';
 
 interface BankReconciliationTabProps {
   bankStatements: BankStatementRow[];
@@ -105,23 +107,23 @@ export const BankReconciliationTab: React.FC<BankReconciliationTabProps> = ({
     <div className="space-y-6">
       {/* Header Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs">
           <div className="text-[10px] font-bold uppercase text-slate-400">Bank Statement Balance</div>
-          <div className="text-2xl font-black text-slate-900 mt-1">
+          <div className="text-2xl font-black text-slate-900 dark:text-slate-100 mt-1">
             {settings.currency} {bankClosingBalance.toLocaleString()}
           </div>
-          <div className="text-[10px] font-semibold text-slate-500 mt-0.5">As per verified e-statement</div>
+          <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5">As per verified e-statement</div>
         </div>
 
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs">
           <div className="text-[10px] font-bold uppercase text-slate-400">Software Book Balance</div>
           <div className="text-2xl font-black text-cyan-600 mt-1">
             {settings.currency} {bookClosingBalance.toLocaleString()}
           </div>
-          <div className="text-[10px] font-semibold text-slate-500 mt-0.5">General Ledger Bank A/C</div>
+          <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5">General Ledger Bank A/C</div>
         </div>
 
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs">
           <div className="text-[10px] font-bold uppercase text-slate-400">Reconciliation Difference</div>
           <div className={`text-2xl font-black mt-1 ${reconciliationDifference < 1 ? 'text-emerald-600' : 'text-amber-600'}`}>
             {settings.currency} {reconciliationDifference.toFixed(2)}
@@ -131,7 +133,7 @@ export const BankReconciliationTab: React.FC<BankReconciliationTabProps> = ({
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs flex flex-col justify-between">
           <div className="text-[10px] font-bold uppercase text-slate-400">Matching Engine</div>
           <button
             type="button"
@@ -162,29 +164,29 @@ export const BankReconciliationTab: React.FC<BankReconciliationTabProps> = ({
       )}
 
       {/* Filter Tabs */}
-      <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+      <div className="flex justify-between items-center bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs">
         <div className="flex space-x-2">
           {(['All', 'Matched', 'Unmatched'] as const).map(tab => (
             <button
               key={tab}
               onClick={() => setActiveFilter(tab)}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                activeFilter === tab ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                activeFilter === tab ? 'bg-slate-900 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
               }`}
             >
               {tab} Entries
             </button>
           ))}
         </div>
-        <div className="text-xs text-slate-500 font-semibold">
+        <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
           Showing {filteredRows.length} bank transaction rows
         </div>
       </div>
 
       {/* Bank Statement Reconciliation Table */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-xs">
         <table className="w-full text-xs text-left border-collapse">
-          <thead className="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 font-bold text-[10px]">
+          <thead className="bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 uppercase border-b border-slate-200 dark:border-slate-700 font-bold text-[10px]">
             <tr>
               <th className="p-3">Date</th>
               <th className="p-3">Bank Narration / Description</th>
@@ -198,10 +200,10 @@ export const BankReconciliationTab: React.FC<BankReconciliationTabProps> = ({
           </thead>
           <tbody className="divide-y divide-slate-100">
             {filteredRows.map(row => (
-              <tr key={row.id} className="hover:bg-slate-50">
-                <td className="p-3 font-semibold text-slate-600">{row.date}</td>
-                <td className="p-3 font-bold text-slate-900">{row.description}</td>
-                <td className="p-3 font-mono font-bold text-slate-600">{row.refNo}</td>
+              <tr key={row.id} className="hover:bg-slate-50 dark:bg-slate-800">
+                <td className="p-3 font-semibold text-slate-600 dark:text-slate-400">{row.date}</td>
+                <td className="p-3 font-bold text-slate-900 dark:text-slate-100">{row.description}</td>
+                <td className="p-3 font-mono font-bold text-slate-600 dark:text-slate-400">{row.refNo}</td>
                 <td className="p-3">
                   <span className={`px-2 py-0.5 rounded font-bold text-[10px] ${
                     row.type === 'Credit' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
@@ -209,7 +211,7 @@ export const BankReconciliationTab: React.FC<BankReconciliationTabProps> = ({
                     {row.type}
                   </span>
                 </td>
-                <td className="p-3 text-right font-black text-slate-900">
+                <td className="p-3 text-right font-black text-slate-900 dark:text-slate-100">
                   {settings.currency} {row.amount.toFixed(2)}
                 </td>
                 <td className="p-3 text-center">
@@ -221,18 +223,28 @@ export const BankReconciliationTab: React.FC<BankReconciliationTabProps> = ({
                     {row.matchStatus === 'Matched' ? '✓ Matched' : '● Unmatched'}
                   </span>
                 </td>
-                <td className="p-3 text-[11px] text-slate-500 italic">
+                <td className="p-3 text-[11px] text-slate-500 dark:text-slate-400 italic">
                   {row.notes || 'Pending reconciliation'}
                 </td>
                 <td className="p-3 text-right">
-                  {row.matchStatus === 'Unmatched' && (
-                    <button
-                      onClick={() => handleCreateAdjustmentEntry(row)}
-                      className="px-2.5 py-1 bg-cyan-50 hover:bg-cyan-100 text-cyan-700 rounded font-bold text-[10px] transition"
-                    >
-                      + Sync into Ledger
-                    </button>
-                  )}
+                  <RowActionsMenu
+                    actions={[
+                      {
+                        label: 'Sync into Ledger',
+                        icon: <Plus className="w-3.5 h-3.5 text-cyan-600" />,
+                        onClick: () => handleCreateAdjustmentEntry(row),
+                        disabled: row.matchStatus === 'Matched',
+                        variant: 'primary',
+                      },
+                      {
+                        label: 'View Audit Details',
+                        icon: <Eye className="w-3.5 h-3.5" />,
+                        onClick: () => {
+                          alert(`Ref/UTR: ${row.refNo}\nDescription: ${row.description}\nAmount: ${settings.currency} ${row.amount.toFixed(2)}\nStatus: ${row.matchStatus}\nNotes: ${row.notes || 'None'}`);
+                        },
+                      },
+                    ]}
+                  />
                 </td>
               </tr>
             ))}
