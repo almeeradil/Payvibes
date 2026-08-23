@@ -54,6 +54,7 @@ import { MultiStoreTab } from './components/MultiStoreTab';
 import { LoyaltyProgramTab } from './components/LoyaltyProgramTab';
 import { HrPayrollTab } from './components/HrPayrollTab';
 import { CommunicationTab } from './components/CommunicationTab';
+import { QuotationsTab } from './components/QuotationsTab';
 import { SalesTab } from './components/SalesTab';
 import { PurchasesTab } from './components/PurchasesTab';
 import { ExpensesTab } from './components/ExpensesTab';
@@ -194,6 +195,25 @@ export default function App() {
       customers: updatedCustomers,
       auditLogs: updatedLogs,
     }));
+  };
+
+  const handleDeleteDocument = (collection: keyof AppStateData, id: string, docName: string) => {
+    if (window.confirm("Are you sure you want to delete this document?")) {
+      const updatedLogs = createAuditEntry(
+        data.auditLogs,
+        data.currentUser,
+        data.currentUserRole,
+        'DELETE_DOC',
+        'System',
+        `Deleted ${docName} (ID: ${id})`
+      );
+
+      setData(prev => ({
+        ...prev,
+        [collection]: (prev[collection] as any[]).filter((item: any) => item.id !== id),
+        auditLogs: updatedLogs,
+      }));
+    }
   };
 
   // Tax Filing Handlers
