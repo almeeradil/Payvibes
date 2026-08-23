@@ -181,7 +181,7 @@
         </button>
         <div id="menu-sales" class="hidden pl-4 space-y-1 py-1 border-l-2 border-slate-100 ml-4">
           <button onclick="showTab('orders')" data-tab="orders" class="nav-tab-btn w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 flex items-center transition"><i class="fa-solid fa-file-invoice text-orange-500 w-4 mr-2"></i>Sales Tax Invoices</button>
-          <button onclick="showTab('quotations')" data-tab="quotations" class="nav-tab-btn w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 flex items-center transition"><i class="fa-solid fa-file-lines text-orange-500 w-4 mr-2"></i>Estimates &amp; Posvibes</button>
+          <button onclick="showTab('quotations')" data-tab="quotations" class="nav-tab-btn w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 flex items-center transition"><i class="fa-solid fa-file-lines text-orange-500 w-4 mr-2"></i>Estimates &amp; Quotations</button>
           <button onclick="showTab('debitnotes')" data-tab="debitnotes" class="nav-tab-btn w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 flex items-center transition"><i class="fa-solid fa-rotate-left text-rose-500 w-4 mr-2"></i>Sales Returns</button>
           <button onclick="showTab('reminders')" data-tab="reminders" class="nav-tab-btn w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 flex items-center transition"><i class="fa-brands fa-whatsapp text-emerald-500 w-4 mr-2"></i>WhatsApp Reminders</button>
         </div>
@@ -815,8 +815,8 @@
         <!-- Existing Tabs (Quotations, Debit Notes, Patients, Inventory, Customers, Suppliers, Purchases, Payouts, Expenses, CashBank, OtherIncome, Barcode, Settings, Help, Reports, Grow) -->
         <div id="tab-quotations" class="tab-content hidden space-y-4">
           <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-            <h4 class="text-sm font-bold text-slate-800">Generated Posvibes</h4>
-            <button onclick="openModal('quotationModal')" class="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-bold text-xs shadow transition">Create Posvibe</button>
+            <h4 class="text-sm font-bold text-slate-800">Generated Quotations</h4>
+            <button onclick="openModal('quotationModal')" class="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-bold text-xs shadow transition">Create Quotation</button>
           </div>
           <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <table class="w-full text-xs text-left border-collapse">
@@ -1733,7 +1733,7 @@
   <div id="quotationModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
       <div class="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
-        <h3 class="font-extrabold text-slate-900 text-base">Generate Posvibe</h3>
+        <h3 class="font-extrabold text-slate-900 text-base">Generate Quotation</h3>
         <button onclick="closeModal('quotationModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
       <div class="space-y-4 text-xs">
@@ -1745,7 +1745,7 @@
         </div>
         <div class="flex justify-end space-x-2 pt-2">
           <button type="button" onclick="closeModal('quotationModal')" class="px-4 py-2 border rounded-lg font-bold text-slate-600">Cancel</button>
-          <button type="button" onclick="saveQuotation()" class="px-4 py-2 bg-orange-500 text-white rounded-lg font-bold shadow">Save Posvibe</button>
+          <button type="button" onclick="saveQuotation()" class="px-4 py-2 bg-orange-500 text-white rounded-lg font-bold shadow">Save Quotation</button>
         </div>
       </div>
     </div>
