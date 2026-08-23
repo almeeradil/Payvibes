@@ -20,6 +20,7 @@ interface ExpensesTabProps {
   settings: SystemSettings;
   userRole: string;
   onAddExpense: (expense: ExpenseVoucher) => void;
+  onDeleteExpense?: (id: string) => void;
 }
 
 export const ExpensesTab: React.FC<ExpensesTabProps> = ({
@@ -27,6 +28,7 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
   settings,
   userRole,
   onAddExpense,
+  onDeleteExpense,
 }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -173,6 +175,12 @@ export const ExpensesTab: React.FC<ExpensesTabProps> = ({
                         icon: <Printer className="w-3.5 h-3.5" />,
                         onClick: () => window.print(),
                       },
+                      ...(onDeleteExpense ? [{
+                        label: 'Delete Expense',
+                        icon: <Trash2 className="w-3.5 h-3.5 text-rose-600" />,
+                        onClick: () => onDeleteExpense(exp.id),
+                        variant: 'danger' as const,
+                      }] : []),
                     ]}
                   />
                 </td>
