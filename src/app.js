@@ -112,6 +112,10 @@ function quickFillRole(email) {
 
 function logout() {
   logAuditEvent('LOGOUT', 'Security', 'User logged out');
+  if (window.userData) {
+    window.userData.currentUserRole = null;
+    persistData(true);
+  }
   const appContainer = document.getElementById('appContainer');
   const loginScreen = document.getElementById('loginScreen');
   const emailInput = document.getElementById('loginEmail');
@@ -3796,12 +3800,29 @@ window.toggleDarkMode = toggleDarkMode;
 window.applyTheme = applyTheme;
 
 // Auto-run on DOM Ready
+function autoLogin() {
+  if (window.userData && window.userData.currentUserRole) {
+    const role = window.userData.currentUserRole;
+    const loginScreen = document.getElementById('loginScreen');
+    const appContainer = document.getElementById('appContainer');
+    const roleDisp = document.getElementById('userRoleDisplay');
+    
+    if (loginScreen) loginScreen.classList.add('hidden');
+    if (appContainer) appContainer.classList.remove('hidden');
+    if (roleDisp) roleDisp.innerText = role;
+
+    initApp();
+  }
+}
+
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     applyTheme();
     initStorage();
+    autoLogin();
   });
 } else {
   applyTheme();
   initStorage();
+  autoLogin();
 }
