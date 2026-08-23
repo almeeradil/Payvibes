@@ -7,9 +7,11 @@ import {
   ArrowRightLeft, 
   CheckCircle2, 
   Printer, 
-  FileText 
+  FileText,
+  Eye
 } from 'lucide-react';
 import { CashBankTransaction, SystemSettings } from '../types';
+import { RowActionsMenu } from './RowActionsMenu';
 
 interface CashBankTabProps {
   transactions: CashBankTransaction[];
@@ -65,13 +67,13 @@ export const CashBankTab: React.FC<CashBankTabProps> = ({
   return (
     <div className="space-y-6">
       {/* Top Banner */}
-      <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+          <h3 className="text-base font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <Landmark className="w-5 h-5 text-cyan-600" />
             <span>Cash &amp; Bank Treasury General Ledger</span>
           </h3>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             Real-time cash-in-hand drawer, corporate bank clearing accounts, and transaction audit entries.
           </p>
         </div>
@@ -96,25 +98,25 @@ export const CashBankTab: React.FC<CashBankTabProps> = ({
 
       {/* Account Balances */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs">
           <div className="text-[10px] font-bold uppercase text-slate-400">Total Bank Ledger Balance</div>
           <div className="text-2xl font-black text-cyan-600 mt-1">
             {settings.currency} {bankBalance.toLocaleString()}
           </div>
-          <div className="text-[10px] text-slate-500 mt-0.5">Meezan / HBL Corporate Accounts</div>
+          <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Meezan / HBL Corporate Accounts</div>
         </div>
 
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs">
           <div className="text-[10px] font-bold uppercase text-slate-400">Total Cash in Hand (Drawers)</div>
           <div className="text-2xl font-black text-emerald-600 mt-1">
             {settings.currency} {cashBalance.toLocaleString()}
           </div>
-          <div className="text-[10px] text-slate-500 mt-0.5">Physical Cash Across Branches</div>
+          <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Physical Cash Across Branches</div>
         </div>
 
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs">
           <div className="text-[10px] font-bold uppercase text-slate-400">Net Liquid Treasury</div>
-          <div className="text-2xl font-black text-slate-900 mt-1">
+          <div className="text-2xl font-black text-slate-900 dark:text-slate-100 mt-1">
             {settings.currency} {(bankBalance + cashBalance).toLocaleString()}
           </div>
           <div className="text-[10px] text-emerald-600 font-bold mt-0.5">✓ Reconciled Solvency</div>
@@ -122,13 +124,13 @@ export const CashBankTab: React.FC<CashBankTabProps> = ({
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex space-x-2 bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+      <div className="flex space-x-2 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs">
         {(['All', 'Cash in Hand', 'Bank Account'] as const).map(accTab => (
           <button
             key={accTab}
             onClick={() => setAccountFilter(accTab)}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-              accountFilter === accTab ? 'bg-cyan-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              accountFilter === accTab ? 'bg-cyan-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
             }`}
           >
             {accTab} Ledger
@@ -137,9 +139,9 @@ export const CashBankTab: React.FC<CashBankTabProps> = ({
       </div>
 
       {/* Transactions Table */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-xs">
         <table className="w-full text-xs text-left border-collapse">
-          <thead className="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 font-bold text-[10px]">
+          <thead className="bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 uppercase border-b border-slate-200 dark:border-slate-700 font-bold text-[10px]">
             <tr>
               <th className="p-3">Voucher Ref #</th>
               <th className="p-3">Date</th>
@@ -148,15 +150,16 @@ export const CashBankTab: React.FC<CashBankTabProps> = ({
               <th className="p-3">Type</th>
               <th className="p-3 text-right">Amount ({settings.currency})</th>
               <th className="p-3 text-center">Bank Recon</th>
+              <th className="p-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {filteredTxns.map(t => (
-              <tr key={t.id} className="hover:bg-slate-50">
-                <td className="p-3 font-mono font-bold text-slate-700">{t.ref}</td>
-                <td className="p-3 font-semibold text-slate-600">{t.date}</td>
-                <td className="p-3 font-bold text-slate-900">{t.account}</td>
-                <td className="p-3 text-slate-700 font-medium">{t.desc}</td>
+              <tr key={t.id} className="hover:bg-slate-50 dark:bg-slate-800">
+                <td className="p-3 font-mono font-bold text-slate-700 dark:text-slate-300">{t.ref}</td>
+                <td className="p-3 font-semibold text-slate-600 dark:text-slate-400">{t.date}</td>
+                <td className="p-3 font-bold text-slate-900 dark:text-slate-100">{t.account}</td>
+                <td className="p-3 text-slate-700 dark:text-slate-300 font-medium">{t.desc}</td>
                 <td className="p-3">
                   <span className={`px-2 py-0.5 rounded font-bold text-[10px] ${
                     t.type === 'Deposit / In' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
@@ -171,10 +174,34 @@ export const CashBankTab: React.FC<CashBankTabProps> = ({
                 </td>
                 <td className="p-3 text-center">
                   <span className={`px-2 py-0.5 rounded font-bold text-[10px] ${
-                    t.reconciled ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
+                    t.reconciled ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                   }`}>
                     {t.reconciled ? '✓ Matched' : 'Pending'}
                   </span>
+                </td>
+                <td className="p-3 text-right">
+                  <RowActionsMenu
+                    actions={[
+                      {
+                        label: 'View Voucher',
+                        icon: <Eye className="w-3.5 h-3.5" />,
+                        onClick: () => {
+                          alert(`Voucher #: ${t.ref}\nAccount: ${t.account}\nDescription: ${t.desc}\nAmount: ${settings.currency} ${t.amount.toFixed(2)}\nReconciled: ${t.reconciled ? 'Yes' : 'No'}`);
+                        },
+                      },
+                      {
+                        label: 'Go to Reconciliation Portal',
+                        icon: <ArrowRightLeft className="w-3.5 h-3.5 text-cyan-600" />,
+                        onClick: () => onNavigateToRecon(),
+                        variant: 'primary',
+                      },
+                      {
+                        label: 'Print Receipt Slip',
+                        icon: <Printer className="w-3.5 h-3.5" />,
+                        onClick: () => window.print(),
+                      },
+                    ]}
+                  />
                 </td>
               </tr>
             ))}
@@ -185,30 +212,30 @@ export const CashBankTab: React.FC<CashBankTabProps> = ({
       {/* Record Txn Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
-            <div className="flex justify-between items-center pb-3 border-b border-slate-200 mb-4">
-              <h3 className="font-extrabold text-slate-900 text-sm">Record Treasury Transaction</h3>
-              <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600">✕</button>
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-700">
+            <div className="flex justify-between items-center pb-3 border-b border-slate-200 dark:border-slate-700 mb-4">
+              <h3 className="font-extrabold text-slate-900 dark:text-slate-100 text-sm">Record Treasury Transaction</h3>
+              <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600 dark:text-slate-400">✕</button>
             </div>
             <form onSubmit={handleSaveTxn} className="space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">Account</label>
+                  <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Account</label>
                   <select
                     value={acc}
                     onChange={(e) => setAcc(e.target.value as any)}
-                    className="w-full px-3 py-2 border rounded-lg bg-white font-bold"
+                    className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-slate-900 font-bold"
                   >
                     <option value="Bank Account">Bank Account</option>
                     <option value="Cash in Hand">Cash in Hand</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">Direction</label>
+                  <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Direction</label>
                   <select
                     value={type}
                     onChange={(e) => setType(e.target.value as any)}
-                    className="w-full px-3 py-2 border rounded-lg bg-white font-bold"
+                    className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-slate-900 font-bold"
                   >
                     <option value="Deposit / In">Deposit / Cash In</option>
                     <option value="Withdraw / Out">Withdraw / Cash Out</option>
@@ -217,7 +244,7 @@ export const CashBankTab: React.FC<CashBankTabProps> = ({
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">Narration / Description *</label>
+                <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Narration / Description *</label>
                 <input
                   type="text"
                   value={desc}
@@ -229,7 +256,7 @@ export const CashBankTab: React.FC<CashBankTabProps> = ({
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">Amount ({settings.currency}) *</label>
+                <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Amount ({settings.currency}) *</label>
                 <input
                   type="number"
                   value={amount}
@@ -240,11 +267,11 @@ export const CashBankTab: React.FC<CashBankTabProps> = ({
                 />
               </div>
 
-              <div className="flex justify-end space-x-2 pt-3 border-t border-slate-100">
+              <div className="flex justify-end space-x-2 pt-3 border-t border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg font-bold text-xs"
+                  className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg font-bold text-xs"
                 >
                   Cancel
                 </button>
