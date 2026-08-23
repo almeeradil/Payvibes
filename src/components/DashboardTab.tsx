@@ -155,16 +155,16 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
       )}
 
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* Total Sales */}
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs hover:border-orange-300 transition">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs hover:border-orange-300 transition">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase text-slate-400">Total Sales Turnover</span>
             <div className="w-8 h-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center font-bold">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-black text-slate-900 mt-2">
+          <div className="text-2xl font-black text-slate-900 dark:text-slate-100 mt-2">
             {data.settings.currency} {totalSalesRevenue.toLocaleString()}
           </div>
           <div className="text-[11px] font-semibold text-emerald-600 flex items-center gap-1 mt-1">
@@ -174,18 +174,18 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
         </div>
 
         {/* Stock Inventory Value & Reorder Indicator */}
-        <div className={`bg-white p-5 rounded-xl border transition ${lowStockItems.length > 0 ? 'border-rose-200 hover:border-rose-300 ring-1 ring-rose-100' : 'border-slate-200 hover:border-cyan-300'} shadow-xs`}>
+        <div className={`bg-white dark:bg-slate-900 p-5 rounded-xl border transition ${lowStockItems.length > 0 ? 'border-rose-200 hover:border-rose-300 ring-1 ring-rose-100' : 'border-slate-200 dark:border-slate-700 hover:border-cyan-300'} shadow-xs`}>
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase text-slate-400">Live Inventory Value</span>
             <div className={`w-8 h-8 rounded-lg ${lowStockItems.length > 0 ? 'bg-rose-50 text-rose-600' : 'bg-cyan-50 text-cyan-600'} flex items-center justify-center font-bold`}>
               <Package className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-black text-slate-900 mt-2">
+          <div className="text-2xl font-black text-slate-900 dark:text-slate-100 mt-2">
             {data.settings.currency} {totalStockValue.toLocaleString()}
           </div>
           <div className="flex items-center justify-between mt-1 text-[11px]">
-            <span className="text-slate-500">{totalStockUnits} Units ({filteredInventory.length} SKUs)</span>
+            <span className="text-slate-500 dark:text-slate-400">{totalStockUnits} Units ({filteredInventory.length} SKUs)</span>
             {lowStockItems.length > 0 ? (
               <span className="font-bold text-rose-600 flex items-center gap-1 bg-rose-50 px-1.5 py-0.2 rounded">
                 <AlertTriangle className="w-3 h-3" />
@@ -200,15 +200,32 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
           </div>
         </div>
 
+        {/* Total Items & Low Stock Count */}
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs hover:border-amber-300 transition">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase text-slate-400">Total &amp; Low Stock Items</span>
+            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+              <Boxes className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-2xl font-black text-slate-900 dark:text-slate-100 mt-2">
+            {filteredInventory.length} Total Items
+          </div>
+          <div className={`text-[11px] font-bold mt-1 flex items-center gap-1 ${lowStockItems.length > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+            <AlertTriangle className="w-3.5 h-3.5" />
+            <span>Low Stock Items: {lowStockItems.length}</span>
+          </div>
+        </div>
+
         {/* Multi-Store Active Branches */}
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs hover:border-purple-300 transition">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs hover:border-purple-300 transition">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase text-slate-400">Multi-Store Network</span>
             <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
               <Store className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-black text-slate-900 mt-2">
+          <div className="text-2xl font-black text-slate-900 dark:text-slate-100 mt-2">
             {data.branches.length} Store Chains
           </div>
           <div className="text-[11px] font-semibold text-purple-600 mt-1">
@@ -217,7 +234,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
         </div>
 
         {/* Total Outflow & Expenses */}
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs hover:border-rose-300 transition">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs hover:border-rose-300 transition">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase text-slate-400">Total Purchases &amp; Exp</span>
             <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
@@ -227,7 +244,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
           <div className="text-2xl font-black text-rose-600 mt-2">
             {data.settings.currency} {(totalPurchaseExpenses + totalOtherExpenses).toLocaleString()}
           </div>
-          <div className="text-[11px] font-semibold text-slate-500 mt-1">
+          <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mt-1">
             Purchases: {data.settings.currency} {totalPurchaseExpenses.toLocaleString()} | Exp: {data.settings.currency} {totalOtherExpenses.toLocaleString()}
           </div>
         </div>
@@ -237,7 +254,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
       <div className={`p-5 rounded-xl border shadow-xs transition ${
         lowStockItems.length > 0 
           ? 'bg-gradient-to-br from-white via-rose-50/20 to-white border-rose-300 ring-1 ring-rose-200/60' 
-          : 'bg-white border-slate-200'
+          : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700'
       }`}>
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-3">
@@ -248,7 +265,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h4 className="text-sm font-black text-slate-900">
+                <h4 className="text-sm font-black text-slate-900 dark:text-slate-100">
                   Stock Level &amp; Reorder Point Visual Indicator
                 </h4>
                 {lowStockItems.length > 0 ? (
@@ -263,8 +280,8 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Automated threshold monitoring against Inventory Settings reorder baseline (Global Target: <strong className="text-slate-800">{defaultReorderPoint} units</strong>, Critical: <strong className="text-rose-600">{criticalThreshold} units</strong>).
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Automated threshold monitoring against Inventory Settings reorder baseline (Global Target: <strong className="text-slate-800 dark:text-slate-200">{defaultReorderPoint} units</strong>, Critical: <strong className="text-rose-600">{criticalThreshold} units</strong>).
               </p>
             </div>
           </div>
@@ -272,7 +289,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
           <div className="flex items-center gap-2">
             <button
               onClick={() => onNavigateTab('settings')}
-              className="text-xs font-bold text-slate-600 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition flex items-center gap-1 cursor-pointer"
+              className="text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition flex items-center gap-1 cursor-pointer"
             >
               <span>Adjust Reorder Settings</span>
             </button>
@@ -288,35 +305,35 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
 
         {/* Visual Summary Badges */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-          <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-center justify-between">
+          <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-xl p-3 flex items-center justify-between">
             <div>
               <div className="text-[10px] font-bold uppercase text-slate-400">Total Under-Stock SKUs</div>
-              <div className={`text-lg font-black ${lowStockItems.length > 0 ? 'text-rose-600' : 'text-slate-900'} mt-0.5`}>
+              <div className={`text-lg font-black ${lowStockItems.length > 0 ? 'text-rose-600' : 'text-slate-900 dark:text-slate-100'} mt-0.5`}>
                 {lowStockItems.length} Products
               </div>
             </div>
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold ${
-              lowStockItems.length > 0 ? 'bg-rose-100 text-rose-700' : 'bg-slate-200 text-slate-600'
+              lowStockItems.length > 0 ? 'bg-rose-100 text-rose-700' : 'bg-slate-200 text-slate-600 dark:text-slate-400'
             }`}>
               <Boxes className="w-4 h-4" />
             </div>
           </div>
 
-          <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-center justify-between">
+          <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-xl p-3 flex items-center justify-between">
             <div>
               <div className="text-[10px] font-bold uppercase text-slate-400">Critical Emergency Stock (&le; {criticalThreshold} units)</div>
-              <div className={`text-lg font-black ${criticalLowCount > 0 ? 'text-rose-700' : 'text-slate-900'} mt-0.5`}>
+              <div className={`text-lg font-black ${criticalLowCount > 0 ? 'text-rose-700' : 'text-slate-900 dark:text-slate-100'} mt-0.5`}>
                 {criticalLowCount} Products
               </div>
             </div>
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold ${
-              criticalLowCount > 0 ? 'bg-rose-600 text-white animate-pulse' : 'bg-slate-200 text-slate-600'
+              criticalLowCount > 0 ? 'bg-rose-600 text-white animate-pulse' : 'bg-slate-200 text-slate-600 dark:text-slate-400'
             }`}>
               <AlertTriangle className="w-4 h-4" />
             </div>
           </div>
 
-          <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-center justify-between">
+          <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-xl p-3 flex items-center justify-between">
             <div>
               <div className="text-[10px] font-bold uppercase text-slate-400">Replenishment Units Needed</div>
               <div className="text-lg font-black text-indigo-600 mt-0.5">
@@ -331,7 +348,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
 
         {/* Breakdown of items below reorder point */}
         {lowStockItems.length > 0 ? (
-          <div className="overflow-x-auto rounded-xl border border-rose-200 bg-white">
+          <div className="overflow-x-auto rounded-xl border border-rose-200 bg-white dark:bg-slate-900">
             <table className="w-full text-xs text-left border-collapse">
               <thead className="bg-rose-50/70 text-rose-900 uppercase border-b border-rose-200 font-bold text-[10px]">
                 <tr>
@@ -357,19 +374,19 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
                   return (
                     <tr key={item.id} className="hover:bg-rose-50/40 transition">
                       <td className="p-3">
-                        <div className="font-extrabold text-slate-900 flex items-center gap-1.5">
+                        <div className="font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
                           <AlertTriangle className={`w-3.5 h-3.5 ${isOutOfStock ? 'text-rose-900' : isCritical ? 'text-rose-600' : 'text-amber-600'}`} />
                           <span>{item.name}</span>
                         </div>
                         <div className="text-[10px] text-slate-400 font-mono mt-0.5">HSN/HS: {item.hsCode || item.hsnCode || '3004.9090'}</div>
                       </td>
                       <td className="p-3">
-                        <span className="bg-slate-100 text-slate-700 font-semibold px-2 py-0.5 rounded text-[10px]">
+                        <span className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold px-2 py-0.5 rounded text-[10px]">
                           {item.category || 'General'}
                         </span>
                       </td>
-                      <td className="p-3 font-mono text-[11px] text-slate-600">
-                        <div className="font-bold text-slate-800">{item.batch || 'BT-LIVE'}</div>
+                      <td className="p-3 font-mono text-[11px] text-slate-600 dark:text-slate-400">
+                        <div className="font-bold text-slate-800 dark:text-slate-200">{item.batch || 'BT-LIVE'}</div>
                         <div className="text-[10px] text-slate-400">{item.expiry || item.expiryDate || 'N/A'}</div>
                       </td>
                       <td className="p-3 min-w-[160px]">
@@ -382,7 +399,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
                           </span>
                         </div>
                         {/* Visual Progress Bar */}
-                        <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200">
+                        <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-200 dark:border-slate-700">
                           <div
                             className={`h-full rounded-full transition-all duration-500 ${
                               isOutOfStock 
@@ -436,14 +453,14 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
       </div>
 
       {/* Multi-Store Chain Live Branch Monitoring Table */}
-      <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
+      <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h4 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+            <h4 className="text-sm font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2">
               <Store className="w-4 h-4 text-purple-600" />
               <span>Multi-Store &amp; Franchise Live Branch Monitor</span>
             </h4>
-            <p className="text-[11px] text-slate-500">Live aggregated sales, stock levels, and staff status across store network.</p>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">Live aggregated sales, stock levels, and staff status across store network.</p>
           </div>
           <button
             onClick={() => onNavigateTab('multistore')}
@@ -456,7 +473,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
 
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left border-collapse">
-            <thead className="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 font-bold text-[10px]">
+            <thead className="bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 uppercase border-b border-slate-200 dark:border-slate-700 font-bold text-[10px]">
               <tr>
                 <th className="p-3">Store Branch</th>
                 <th className="p-3">Location / Code</th>
@@ -473,21 +490,21 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
                 const bStockVal = data.inventory.filter(i => i.branchId === b.id).reduce((s, i) => s + (i.stock * i.purchasePrice), 0);
                 const bStaff = data.employees.filter(e => e.branchId === b.id).length;
                 return (
-                  <tr key={b.id} className="hover:bg-slate-50 transition">
-                    <td className="p-3 font-bold text-slate-900 flex items-center gap-2">
+                  <tr key={b.id} className="hover:bg-slate-50 dark:bg-slate-800 transition">
+                    <td className="p-3 font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                       <Store className="w-3.5 h-3.5 text-purple-500" />
                       <span>{b.name}</span>
                       {b.isHq && <span className="bg-purple-100 text-purple-800 text-[9px] px-1.5 py-0.2 rounded font-bold">HQ</span>}
                     </td>
-                    <td className="p-3 font-semibold text-slate-600">{b.city} ({b.code})</td>
-                    <td className="p-3 text-slate-700">{b.manager}</td>
+                    <td className="p-3 font-semibold text-slate-600 dark:text-slate-400">{b.city} ({b.code})</td>
+                    <td className="p-3 text-slate-700 dark:text-slate-300">{b.manager}</td>
                     <td className="p-3 text-right font-black text-emerald-600">
                       {data.settings.currency} {bSales.toLocaleString()}
                     </td>
-                    <td className="p-3 text-right font-black text-slate-900">
+                    <td className="p-3 text-right font-black text-slate-900 dark:text-slate-100">
                       {data.settings.currency} {bStockVal.toLocaleString()}
                     </td>
-                    <td className="p-3 text-center font-bold text-slate-700">{bStaff} Staff</td>
+                    <td className="p-3 text-center font-bold text-slate-700 dark:text-slate-300">{bStaff} Staff</td>
                     <td className="p-3 text-center">
                       <span className="bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded-full font-bold">
                         {b.status}
@@ -504,14 +521,14 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
       {/* Quick Access Modules Bento Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* GST & Tax Compliance Widget */}
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-bold uppercase text-slate-400">GST &amp; Tax Compliance</span>
               <FileCheck2 className="w-4 h-4 text-emerald-600" />
             </div>
-            <h5 className="font-extrabold text-slate-900 text-sm">Automated 1-Click Tax Filing</h5>
-            <p className="text-[11px] text-slate-500 mt-1">
+            <h5 className="font-extrabold text-slate-900 dark:text-slate-100 text-sm">Automated 1-Click Tax Filing</h5>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
               GSTR-1, GSTR-3B &amp; E-Way Bill validation engine with pre-submission error checking.
             </p>
           </div>
@@ -525,14 +542,14 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
         </div>
 
         {/* Inter-Store Stock Transfer Widget */}
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-bold uppercase text-slate-400">Logistics &amp; Stock</span>
               <ArrowRightLeft className="w-4 h-4 text-purple-600" />
             </div>
-            <h5 className="font-extrabold text-slate-900 text-sm">Inter-Store Stock Transfer</h5>
-            <p className="text-[11px] text-slate-500 mt-1">
+            <h5 className="font-extrabold text-slate-900 dark:text-slate-100 text-sm">Inter-Store Stock Transfer</h5>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
               Transfer items seamlessly between store branches with real-time transit status tracking.
             </p>
           </div>
@@ -546,14 +563,14 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
         </div>
 
         {/* HR & Biometric Attendance Widget */}
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-bold uppercase text-slate-400">HR &amp; Payroll</span>
               <UserCheck className="w-4 h-4 text-indigo-600" />
             </div>
-            <h5 className="font-extrabold text-slate-900 text-sm">Biometric Attendance &amp; Payroll</h5>
-            <p className="text-[11px] text-slate-500 mt-1">
+            <h5 className="font-extrabold text-slate-900 dark:text-slate-100 text-sm">Biometric Attendance &amp; Payroll</h5>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
               Punch-in tracking, automated working hours salary calculation, and 1-Click Sync to Expenses.
             </p>
           </div>
