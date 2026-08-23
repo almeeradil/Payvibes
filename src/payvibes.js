@@ -1,4 +1,4 @@
-// Payvibes Enterprise ERP Engine (Full Featured Vanilla JS)
+// Posvibe Enterprise ERP Engine (Full Featured Vanilla JS)
 
 const masterMedicinesList = [
   "Panadol Tablet 500mg", "Panadol CF", "Panadol Extra", "Panadol Extend", "Brufen Tablet 400mg", "Brufen Syrup", "Calpol Syrup",
