@@ -8,9 +8,12 @@ import {
   AlertCircle, 
   Building, 
   Download,
-  Receipt
+  Receipt,
+  Eye
 } from 'lucide-react';
 import { TdsEntry, TcsEntry, SystemSettings } from '../types';
+import { printHtmlDirectly } from '../services/printSlip';
+import { RowActionsMenu } from './RowActionsMenu';
 
 interface TdsTcsTabProps {
   tdsEntries: TdsEntry[];
@@ -104,19 +107,17 @@ export const TdsTcsTab: React.FC<TdsTcsTabProps> = ({
         <div>Verified by Tax Officer: __________________</div>
         <div>Authorized Seal &amp; Signature: __________________</div>
       </div>
-    </div><script>window.onload=function(){window.print();}</script></body></html>`;
-    const w = window.open('', '_blank');
-    w?.document.write(html);
-    w?.document.close();
+    </div></body></html>`;
+    printHtmlDirectly(html);
   };
 
   return (
     <div className="space-y-6">
       {/* Header Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs">
           <div className="text-[10px] font-bold uppercase text-slate-400">Total TDS Deducted (Payable)</div>
-          <div className="text-2xl font-black text-slate-900 mt-1">
+          <div className="text-2xl font-black text-slate-900 dark:text-slate-100 mt-1">
             {settings.currency} {totalTdsDeducted.toLocaleString()}
           </div>
           <div className="text-[10px] font-semibold text-cyan-600 mt-1">
@@ -124,17 +125,17 @@ export const TdsTcsTab: React.FC<TdsTcsTabProps> = ({
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs">
           <div className="text-[10px] font-bold uppercase text-slate-400">Total TCS Collected</div>
           <div className="text-2xl font-black text-emerald-600 mt-1">
             {settings.currency} {totalTcsCollected.toLocaleString()}
           </div>
-          <div className="text-[10px] font-semibold text-slate-500 mt-1">
+          <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mt-1">
             Under Section 206C(1H) / Sales Tax Surcharge
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs flex items-center justify-between">
           <div>
             <div className="text-[10px] font-bold uppercase text-slate-400">Challan Deposit Due</div>
             <div className="text-lg font-black text-rose-600 mt-1">7th of Next Month</div>
@@ -151,11 +152,11 @@ export const TdsTcsTab: React.FC<TdsTcsTabProps> = ({
       </div>
 
       {/* Tabs Switcher */}
-      <div className="flex border-b border-slate-200 space-x-4 text-xs font-bold">
+      <div className="flex border-b border-slate-200 dark:border-slate-700 space-x-4 text-xs font-bold">
         <button
           onClick={() => setActiveSection('tds')}
           className={`pb-2.5 flex items-center gap-1.5 transition ${
-            activeSection === 'tds' ? 'border-b-2 border-emerald-600 text-emerald-600' : 'text-slate-500 hover:text-slate-800'
+            activeSection === 'tds' ? 'border-b-2 border-emerald-600 text-emerald-600' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:text-slate-200'
           }`}
         >
           <Percent className="w-4 h-4" />
@@ -164,7 +165,7 @@ export const TdsTcsTab: React.FC<TdsTcsTabProps> = ({
         <button
           onClick={() => setActiveSection('tcs')}
           className={`pb-2.5 flex items-center gap-1.5 transition ${
-            activeSection === 'tcs' ? 'border-b-2 border-emerald-600 text-emerald-600' : 'text-slate-500 hover:text-slate-800'
+            activeSection === 'tcs' ? 'border-b-2 border-emerald-600 text-emerald-600' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:text-slate-200'
           }`}
         >
           <Receipt className="w-4 h-4" />
@@ -174,9 +175,9 @@ export const TdsTcsTab: React.FC<TdsTcsTabProps> = ({
 
       {/* TDS Table */}
       {activeSection === 'tds' && (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-xs">
           <table className="w-full text-xs text-left border-collapse">
-            <thead className="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 font-bold text-[10px]">
+            <thead className="bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 uppercase border-b border-slate-200 dark:border-slate-700 font-bold text-[10px]">
               <tr>
                 <th className="p-3">Date</th>
                 <th className="p-3">Party Name</th>
@@ -193,15 +194,15 @@ export const TdsTcsTab: React.FC<TdsTcsTabProps> = ({
             <tbody className="divide-y divide-slate-100">
               {tdsEntries.length > 0 ? (
                 tdsEntries.map(t => (
-                  <tr key={t.id} className="hover:bg-slate-50">
-                    <td className="p-3 font-semibold text-slate-600">{t.date}</td>
-                    <td className="p-3 font-bold text-slate-900">{t.partyName}</td>
+                  <tr key={t.id} className="hover:bg-slate-50 dark:bg-slate-800">
+                    <td className="p-3 font-semibold text-slate-600 dark:text-slate-400">{t.date}</td>
+                    <td className="p-3 font-bold text-slate-900 dark:text-slate-100">{t.partyName}</td>
                     <td className="p-3 font-mono text-[11px] text-emerald-700 bg-emerald-50/60 px-2 py-0.5 rounded font-bold">
                       {t.section}
                     </td>
-                    <td className="p-3 font-mono text-slate-600">{t.partyPanNtn}</td>
-                    <td className="p-3 font-mono text-slate-700">{t.invoiceRef}</td>
-                    <td className="p-3 text-right font-black text-slate-800">
+                    <td className="p-3 font-mono text-slate-600 dark:text-slate-400">{t.partyPanNtn}</td>
+                    <td className="p-3 font-mono text-slate-700 dark:text-slate-300">{t.invoiceRef}</td>
+                    <td className="p-3 text-right font-black text-slate-800 dark:text-slate-200">
                       {settings.currency} {t.transactionAmount.toFixed(2)}
                     </td>
                     <td className="p-3 text-right font-bold text-cyan-600">{t.tdsRate}%</td>
@@ -214,13 +215,23 @@ export const TdsTcsTab: React.FC<TdsTcsTabProps> = ({
                       </span>
                     </td>
                     <td className="p-3 text-right">
-                      <button
-                        onClick={() => handlePrintCertificate(t)}
-                        className="px-2.5 py-1 bg-cyan-50 hover:bg-cyan-100 text-cyan-700 rounded font-bold text-[10px] inline-flex items-center gap-1 transition"
-                      >
-                        <Printer className="w-3 h-3" />
-                        <span>Form 16A</span>
-                      </button>
+                      <RowActionsMenu
+                        actions={[
+                          {
+                            label: 'Print Form 16A Certificate',
+                            icon: <Printer className="w-3.5 h-3.5 text-cyan-600" />,
+                            onClick: () => handlePrintCertificate(t),
+                            variant: 'primary',
+                          },
+                          {
+                            label: 'View Deduction Summary',
+                            icon: <Eye className="w-3.5 h-3.5" />,
+                            onClick: () => {
+                              alert(`Party: ${t.partyName}\nSection: ${t.section}\nPan/NTN: ${t.partyPanNtn}\nInv Ref: ${t.invoiceRef}\nAmount: ${settings.currency} ${t.transactionAmount.toFixed(2)}\nTDS Rate: ${t.tdsRate}%\nTDS Deducted: ${settings.currency} ${t.tdsAmount.toFixed(2)}`);
+                            },
+                          },
+                        ]}
+                      />
                     </td>
                   </tr>
                 ))
@@ -238,9 +249,9 @@ export const TdsTcsTab: React.FC<TdsTcsTabProps> = ({
 
       {/* TCS Table */}
       {activeSection === 'tcs' && (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-xs">
           <table className="w-full text-xs text-left border-collapse">
-            <thead className="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 font-bold text-[10px]">
+            <thead className="bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 uppercase border-b border-slate-200 dark:border-slate-700 font-bold text-[10px]">
               <tr>
                 <th className="p-3">Date</th>
                 <th className="p-3">Customer Name</th>
@@ -251,17 +262,18 @@ export const TdsTcsTab: React.FC<TdsTcsTabProps> = ({
                 <th className="p-3 text-right">TCS Rate</th>
                 <th className="p-3 text-right">TCS Collected ({settings.currency})</th>
                 <th className="p-3 text-center">Status</th>
+                <th className="p-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {tcsEntries.map(tc => (
-                <tr key={tc.id} className="hover:bg-slate-50">
-                  <td className="p-3 font-semibold text-slate-600">{tc.date}</td>
-                  <td className="p-3 font-bold text-slate-900">{tc.customerName}</td>
-                  <td className="p-3 font-mono font-bold text-slate-700">{tc.section}</td>
-                  <td className="p-3 font-mono text-slate-600">{tc.customerNtnGst}</td>
+                <tr key={tc.id} className="hover:bg-slate-50 dark:bg-slate-800">
+                  <td className="p-3 font-semibold text-slate-600 dark:text-slate-400">{tc.date}</td>
+                  <td className="p-3 font-bold text-slate-900 dark:text-slate-100">{tc.customerName}</td>
+                  <td className="p-3 font-mono font-bold text-slate-700 dark:text-slate-300">{tc.section}</td>
+                  <td className="p-3 font-mono text-slate-600 dark:text-slate-400">{tc.customerNtnGst}</td>
                   <td className="p-3 font-mono text-orange-600 font-bold">{tc.invoiceRef}</td>
-                  <td className="p-3 text-right font-black text-slate-900">
+                  <td className="p-3 text-right font-black text-slate-900 dark:text-slate-100">
                     {settings.currency} {tc.saleAmount.toFixed(2)}
                   </td>
                   <td className="p-3 text-right font-bold text-emerald-600">{tc.tcsRate}%</td>
@@ -273,6 +285,24 @@ export const TdsTcsTab: React.FC<TdsTcsTabProps> = ({
                       {tc.status}
                     </span>
                   </td>
+                  <td className="p-3 text-right">
+                    <RowActionsMenu
+                      actions={[
+                        {
+                          label: 'View TCS Details',
+                          icon: <Eye className="w-3.5 h-3.5" />,
+                          onClick: () => {
+                            alert(`Customer: ${tc.customerName}\nSection: ${tc.section}\nNTN/GST: ${tc.customerNtnGst}\nInvoice: ${tc.invoiceRef}\nSales Amount: ${settings.currency} ${tc.saleAmount.toFixed(2)}\nTCS Rate: ${tc.tcsRate}%\nTCS Collected: ${settings.currency} ${tc.tcsAmount.toFixed(2)}`);
+                          },
+                        },
+                        {
+                          label: 'Print TCS Certificate',
+                          icon: <Printer className="w-3.5 h-3.5" />,
+                          onClick: () => window.print(),
+                        },
+                      ]}
+                    />
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -283,15 +313,15 @@ export const TdsTcsTab: React.FC<TdsTcsTabProps> = ({
       {/* Record TDS Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
-            <div className="flex justify-between items-center pb-3 border-b border-slate-200 mb-4">
-              <h3 className="font-extrabold text-slate-900 text-sm">Record TDS Deduction Entry</h3>
-              <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600">✕</button>
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-700">
+            <div className="flex justify-between items-center pb-3 border-b border-slate-200 dark:border-slate-700 mb-4">
+              <h3 className="font-extrabold text-slate-900 dark:text-slate-100 text-sm">Record TDS Deduction Entry</h3>
+              <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600 dark:text-slate-400">✕</button>
             </div>
 
             <form onSubmit={handleSaveTds} className="space-y-3 text-xs">
               <div>
-                <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">Deductee / Vendor Name *</label>
+                <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Deductee / Vendor Name *</label>
                 <input
                   type="text"
                   value={tdsParty}
@@ -304,7 +334,7 @@ export const TdsTcsTab: React.FC<TdsTcsTabProps> = ({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">Party PAN / NTN</label>
+                  <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Party PAN / NTN</label>
                   <input
                     type="text"
                     value={tdsPanNtn}
@@ -314,11 +344,11 @@ export const TdsTcsTab: React.FC<TdsTcsTabProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">Section Code</label>
+                  <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Section Code</label>
                   <select
                     value={tdsSection}
                     onChange={(e) => setTdsSection(e.target.value)}
-                    className="w-full px-3 py-2 border rounded-lg bg-white"
+                    className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-slate-900"
                   >
                     <option value="194Q (Goods Purchase)">194Q (Purchase of Goods)</option>
                     <option value="194C (Contractor)">194C (Contractor Payment)</option>
@@ -331,7 +361,7 @@ export const TdsTcsTab: React.FC<TdsTcsTabProps> = ({
 
               <div className="grid grid-cols-3 gap-3">
                 <div className="col-span-2">
-                  <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">Gross Payment ({settings.currency}) *</label>
+                  <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Gross Payment ({settings.currency}) *</label>
                   <input
                     type="number"
                     value={tdsTxnAmount}
@@ -342,7 +372,7 @@ export const TdsTcsTab: React.FC<TdsTcsTabProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">TDS Rate %</label>
+                  <label className="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">TDS Rate %</label>
                   <input
                     type="number"
                     value={tdsRate}
@@ -352,11 +382,11 @@ export const TdsTcsTab: React.FC<TdsTcsTabProps> = ({
                 </div>
               </div>
 
-              <div className="flex justify-end space-x-2 pt-3 border-t border-slate-100">
+              <div className="flex justify-end space-x-2 pt-3 border-t border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg font-bold text-xs"
+                  className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg font-bold text-xs"
                 >
                   Cancel
                 </button>
