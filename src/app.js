@@ -2875,7 +2875,6 @@ function renderOrders() {
       <td class="p-3 text-right space-x-1 whitespace-nowrap">
         <button onclick="openPrintInvoice('${o.inv}', 'TAX INVOICE')" title="Print Invoice" class="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs font-bold"><i class="fa-solid fa-print"></i></button>
         <button onclick="openPrintEwaySlip('${o.eWayBillNo || o.inv}')" title="Print E-Way Bill Slip" class="p-1.5 bg-cyan-50 text-cyan-600 hover:bg-cyan-100 rounded-lg text-xs font-bold"><i class="fa-solid fa-truck-fast"></i></button>
-        ${!isEmp ? `<button onclick="editOrder('${o.inv}')" title="Edit" class="p-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs font-bold"><i class="fa-solid fa-pen-to-square"></i></button>` : ''}
         <button onclick="sendWhatsappInvoice('${o.inv}')" title="Send WhatsApp" class="p-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg text-xs"><i class="fa-brands fa-whatsapp"></i></button>
         ${!isEmp ? `<button onclick="deleteOrder('${o.inv}')" title="Delete" class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
       </td>
@@ -2911,7 +2910,6 @@ function renderPurchaseInvoices() {
       <td class="p-3 font-black">Rs ${p.amt.toLocaleString()}</td>
       <td class="p-3 text-right space-x-1">
         <button onclick="openPrintInvoice('${p.ref}', 'PURCHASE BILL')" title="Print" class="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs"><i class="fa-solid fa-print"></i></button>
-        ${!isEmp ? `<button onclick="editPurchaseInvoice('${p.ref}')" title="Edit" class="p-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs"><i class="fa-solid fa-pen-to-square"></i></button>` : ''}
         ${!isEmp ? `<button onclick="deletePurchaseInvoice('${p.ref}')" title="Delete" class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
       </td>
     </tr>
@@ -3758,6 +3756,26 @@ window.editPayout = editPayout;
 window.editExpense = editExpense;
 window.editCashBank = editCashBank;
 window.editIncome = editIncome;
+
+window.promptRecovery = function(type) {
+  const invNo = prompt("Enter the Invoice Number to edit/recover:");
+  if (!invNo) return;
+  if (type === 'sales') {
+    const order = (window.userData?.orders || []).find(o => o.inv === invNo.trim());
+    if (order) {
+      editOrder(order.inv);
+    } else {
+      alert("Invoice not found in Sales records.");
+    }
+  } else if (type === 'purchase') {
+    const pi = (window.userData?.purchaseinvoices || []).find(p => p.ref === invNo.trim());
+    if (pi) {
+      editPurchaseInvoice(pi.ref);
+    } else {
+      alert("Invoice not found in Purchase records.");
+    }
+  }
+};
 window.editPatient = editPatient;
 window.deleteOrder = deleteOrder;
 window.deletePurchaseInvoice = deletePurchaseInvoice;
