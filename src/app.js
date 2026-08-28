@@ -3802,8 +3802,23 @@ window.applyTheme = applyTheme;
 
 // Auto-run on DOM Ready
 function autoLogin() {
-  if (window.userData && window.userData.currentUserRole) {
-    const role = window.userData.currentUserRole;
+  let role = window.userData?.currentUserRole;
+  
+  if (!role) {
+    // Fallback check directly from localStorage in case of initialization quirks
+    try {
+      const saved = localStorage.getItem('payvibes_enterprise_data');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.currentUserRole) {
+          role = parsed.currentUserRole;
+          if (window.userData) window.userData.currentUserRole = role;
+        }
+      }
+    } catch(e) {}
+  }
+
+  if (role) {
     const loginScreen = document.getElementById('loginScreen');
     const appContainer = document.getElementById('appContainer');
     const roleDisp = document.getElementById('userRoleDisplay');
@@ -3813,6 +3828,12 @@ function autoLogin() {
     if (roleDisp) roleDisp.innerText = role;
 
     initApp();
+  } else {
+    // Force show login if no role
+    const loginScreen = document.getElementById('loginScreen');
+    const appContainer = document.getElementById('appContainer');
+    if (loginScreen) loginScreen.classList.remove('hidden');
+    if (appContainer) appContainer.classList.add('hidden');
   }
 }
 
