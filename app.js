@@ -106,6 +106,7 @@ function handleLogin(e) {
     if (err) err.classList.remove('hidden');
   }
 }
+if (typeof window !== 'undefined') window.handleLogin = handleLogin;
 
 function quickFillRole(email) {
   // Deprecated
@@ -628,6 +629,10 @@ function openModal(id) {
 function closeModal(id) {
   const modal = document.getElementById(id);
   if (modal) modal.classList.add('hidden');
+}
+if (typeof window !== 'undefined') {
+  window.openModal = openModal;
+  window.closeModal = closeModal;
 }
 
 // Dropdown Populators for Customers & Suppliers
@@ -3306,7 +3311,6 @@ function renderExpenses() {
       <td class="p-3">${e.mode}</td>
       <td class="p-3 font-black text-rose-600">Rs ${e.amount.toLocaleString()}</td>
       <td class="p-3 text-right space-x-1">
-        <button onclick="openPrintExpenseSlip('${e.ref}')" title="Print Expense Voucher" class="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs"><i class="fa-solid fa-print"></i></button>
         ${!isEmp ? `<button onclick="editExpense('${e.ref}')" title="Edit" class="p-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs"><i class="fa-solid fa-pen-to-square"></i></button>` : ''}
         ${!isEmp ? `<button onclick="deleteExpense('${e.ref}')" title="Delete" class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
       </td>
@@ -3338,7 +3342,6 @@ function renderCashBank() {
       <td class="p-3 text-slate-600">${c.desc}</td>
       <td class="p-3 font-black">Rs ${c.amount.toLocaleString()}</td>
       <td class="p-3 text-right space-x-1">
-        <button onclick="openPrintCashBankSlip('${c.ref}')" title="Print Cash/Bank Voucher" class="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs"><i class="fa-solid fa-print"></i></button>
         ${!isEmp ? `<button onclick="editCashBank('${c.ref}')" title="Edit" class="p-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs"><i class="fa-solid fa-pen-to-square"></i></button>` : ''}
         ${!isEmp ? `<button onclick="deleteCashBank('${c.ref}')" title="Delete" class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
       </td>
@@ -3908,4 +3911,3 @@ if (document.readyState === 'loading') {
   initStorage();
   autoLogin();
 }
-
