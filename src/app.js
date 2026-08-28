@@ -70,23 +70,24 @@ function handleLogin(e) {
   const pass = passInput ? passInput.value.trim() : '';
 
   let role = null;
-  if (email === 'admin@gmail.com' && pass === 'adiladil') {
+  if (email === 'admin@gmail.com' && pass === 'aefdef') {
     role = 'Admin';
-  } else if ((email === 'employ@gmail.com' || email === 'employee@gmail.com') && pass === 'adiladil') {
+  } else if ((email === 'employ@gmail.com' || email === 'employee@gmail.com') && pass === 'aefaef') {
     role = 'Employee';
-  } else if (email === 'staff@gmail.com' && pass === 'adiladil') {
+  } else if (email === 'staff@gmail.com' && pass === 'aefaef') {
     role = 'Staff Manager';
-  } else if (email === 'accountant@gmail.com' && pass === 'adiladil') {
+  } else if (email === 'accountant@gmail.com' && pass === 'aefaef') {
     role = 'Accountant';
-  } else if (email === 'cashier@gmail.com' && pass === 'adiladil') {
+  } else if (email === 'cashier@gmail.com' && pass === 'aefaef') {
     role = 'Cashier';
-  } else if (email === 'store@gmail.com' && pass === 'adiladil') {
+  } else if (email === 'store@gmail.com' && pass === 'aefaef') {
     role = 'Store Manager';
   }
 
   if (role) {
     if (!window.userData) window.userData = {};
     window.userData.currentUserRole = role;
+    persistData(true);
     
     const loginScreen = document.getElementById('loginScreen');
     const appContainer = document.getElementById('appContainer');
