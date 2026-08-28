@@ -42,21 +42,20 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
     const cleanEmail = email.trim().toLowerCase();
     const cleanPass = password.trim();
 
-    if (cleanEmail === 'admin@gmail.com' && cleanPass === 'adiladil') {
+    if (cleanEmail === 'admin@gmail.com' && cleanPass === 'aefdef') {
       triggerLogin('Admin', cleanEmail);
-    } else if ((cleanEmail === 'employ@gmail.com' || cleanEmail === 'employee@gmail.com') && cleanPass === 'adiladil') {
+    } else if ((cleanEmail === 'employ@gmail.com' || cleanEmail === 'employee@gmail.com') && cleanPass === 'aefaef') {
       triggerLogin('Employee', cleanEmail);
-    } else if (cleanEmail === 'staff@gmail.com' && cleanPass === 'adiladil') {
+    } else if (cleanEmail === 'staff@gmail.com' && cleanPass === 'aefaef') {
       triggerLogin('Staff Manager', cleanEmail);
-    } else if (cleanEmail === 'accountant@gmail.com' && cleanPass === 'adiladil') {
+    } else if (cleanEmail === 'accountant@gmail.com' && cleanPass === 'aefaef') {
       triggerLogin('Accountant', cleanEmail);
-    } else if (cleanEmail === 'cashier@gmail.com' && cleanPass === 'adiladil') {
+    } else if (cleanEmail === 'cashier@gmail.com' && cleanPass === 'aefaef') {
       triggerLogin('Cashier', cleanEmail);
-    } else if (cleanEmail === 'store@gmail.com' && cleanPass === 'adiladil') {
+    } else if (cleanEmail === 'store@gmail.com' && cleanPass === 'aefaef') {
       triggerLogin('Store Manager', cleanEmail);
     } else {
       setError('Invalid enterprise credentials. Please check your email or password.');
@@ -104,13 +103,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-orange-600 flex items-center justify-center shadow-lg shadow-orange-600/30 overflow-hidden p-1">
               <img
-                src="https://raw.githubusercontent.com/zuraizadil32-cyber/Payvubes/main/logo.png"
-                alt="Payvibes logo"
+                src="https://zuraizadil32-cyber.github.io/Payvubes/logo.png"
+                alt="Posvibe logo"
                 className="w-full h-full object-contain"
               />
             </div>
             <div>
-              <h1 className="text-lg font-black tracking-tight text-white">Payvibes</h1>
+              <h1 className="text-lg font-black tracking-tight text-white">Posvibe</h1>
               <p className="text-[11px] text-slate-400 font-medium">Enterprise Management Suite</p>
             </div>
           </div>
@@ -206,7 +205,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             >
               <Upload className="w-8 h-8 mx-auto text-cyan-400 mb-2 animate-pulse" />
               <div className="text-xs font-bold text-slate-200">Click to Browse JSON Backup File</div>
-              <div className="text-[11px] text-slate-500 mt-1">Accepts payvibes_backup_*.json files</div>
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Accepts posvibe_backup_*.json files</div>
               <input
                 type="file"
                 ref={fileInputRef}
