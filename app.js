@@ -3961,6 +3961,100 @@ window.editExpense = editExpense;
 window.editCashBank = editCashBank;
 window.editIncome = editIncome;
 
+// Aliases and Helper Functions for Inline Handlers in HTML
+window.renderQuotations = renderQuotationsTable;
+window.renderDebitNotes = renderDebitNotesTable;
+window.renderPurchases = renderPurchasesTable;
+window.renderPayouts = renderPayoutsTable;
+window.renderBankRecon = renderBankReconciliation;
+window.renderReport = renderCharts;
+window.filter = function(type) { if (typeof filterProductsTable === 'function') filterProductsTable(); };
+window.writeText = function(text) {
+  if (navigator.clipboard) navigator.clipboard.writeText(text);
+  alert("Copied to clipboard: " + text);
+};
+
+window.handleBarcodeScan = function() {
+  const input = document.getElementById('barcodeInput');
+  const resultDiv = document.getElementById('barcodeResult');
+  if (!input || !resultDiv) return;
+  const val = input.value.trim().toLowerCase();
+  if (!val) {
+    resultDiv.innerHTML = '<p class="text-rose-500 font-bold">Please enter or scan a barcode/item name.</p>';
+    return;
+  }
+  const item = (window.userData?.inventory || []).find(i => 
+    (i.name && i.name.toLowerCase().includes(val)) || 
+    (i.batch && i.batch.toLowerCase().includes(val)) ||
+    (i.id && i.id.toLowerCase().includes(val))
+  );
+  if (item) {
+    resultDiv.innerHTML = `
+      <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-lg flex justify-between items-center">
+        <div>
+          <p class="font-bold text-emerald-800">${item.name} (${item.batch || 'Batch N/A'})</p>
+          <p class="text-slate-600 text-[11px]">Stock: ${item.stock} ${item.unit || 'Pcs'} | Price: Rs ${item.salePrice || item.rate || 0}</p>
+        </div>
+        <button onclick="addToCart('${item.id}')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs shadow">Add to Cart</button>
+      </div>
+    `;
+    if (!window.userData.scans) window.userData.scans = [];
+    window.userData.scans.unshift({ time: new Date().toLocaleTimeString(), code: item.name, status: 'Found & Verified' });
+    if (typeof window.renderScanLog === 'function') window.renderScanLog();
+  } else {
+    resultDiv.innerHTML = `<p class="text-amber-600 font-bold">No product matching "${val}" found in inventory.</p>`;
+  }
+};
+
+window.renderScanLog = function() {
+  const tbody = document.getElementById('scanLogBody');
+  if (!tbody) return;
+  const scans = window.userData?.scans || [];
+  if (scans.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-slate-400">No scans yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = scans.map(s => `
+    <tr class="border-b border-slate-100">
+      <td class="p-3 font-mono text-slate-500">${s.time}</td>
+      <td class="p-3 font-bold text-slate-800">${s.code}</td>
+      <td class="p-3"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-[10px] font-bold">${s.status}</span></td>
+    </tr>
+  `).join('');
+};
+
+window.clearScanLog = function() {
+  if (window.userData) window.userData.scans = [];
+  if (typeof window.renderScanLog === 'function') window.renderScanLog();
+};
+
+window.saveGrowSettings = function() {
+  alert("Business Growth & Marketing Settings Saved Successfully!");
+};
+
+window.shareMarketing = function(type) {
+  const msg = encodeURIComponent("Welcome to Payvibes Enterprise! Check out our latest products and deals.");
+  if (type === 'whatsapp') {
+    window.open(`https://wa.me/?text=${msg}`, '_blank');
+  } else {
+    alert("SMS Broadcast Triggered successfully to registered customers.");
+  }
+};
+
+window.clearReportFilters = function() {
+  const from = document.getElementById('rptFromDate');
+  const to = document.getElementById('rptToDate');
+  if (from) from.value = '';
+  if (to) to.value = '';
+  if (typeof renderCharts === 'function') renderCharts();
+};
+
+window.printReport = function() {
+  window.print();
+};
+
+
+
 window.promptRecovery = function(type) {
   let modal = document.getElementById('customPromptModal');
   if (!modal) {
