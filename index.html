@@ -111,8 +111,51 @@
 
 <body class="bg-slate-100 font-sans antialiased text-slate-800">
 
+  <!-- Login & Lock Screen (Matched to uploaded design spec) -->
+  <div id="loginScreen" class="fixed inset-0 bg-[#0c1322] z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 sm:p-10 border border-slate-100 text-slate-900 relative">
+      <!-- Circular Red Icon with Posvibe Logo -->
+      <div class="w-16 h-16 rounded-full bg-slate-900 flex items-center justify-center mx-auto mb-4 p-2 shadow-md border-2 border-orange-500/20">
+        <img src="https://zuraizadil32-cyber.github.io/Payvubes/logo.png" alt="Posvibe logo" class="w-full h-full object-contain">
+      </div>
+
+      <!-- Title & Subtitle -->
+      <h1 class="text-2xl font-black text-slate-900 text-center tracking-tight">Posvibe</h1>
+      <p class="text-xs text-slate-500 text-center mt-1 mb-6 font-medium">Sign in with your authorized system credentials</p>
+
+      <form onsubmit="handleLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-[10.5px] font-extrabold uppercase tracking-wider text-slate-600 mb-1.5">EMAIL ADDRESS</label>
+          <input type="email" id="loginEmail" value="" required placeholder="Email" class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition placeholder:text-slate-400">
+        </div>
+        <div>
+          <label class="block text-[10.5px] font-extrabold uppercase tracking-wider text-slate-600 mb-1.5">PASSWORD</label>
+          <input type="password" id="loginPassword" value="" required placeholder="••••••••" class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition placeholder:text-slate-400">
+        </div>
+        <div id="loginError" class="hidden text-xs text-rose-600 bg-rose-50 border border-rose-200 p-2.5 rounded-xl text-center font-bold">
+          Invalid credentials. Please verify your email or password.
+        </div>
+        <button type="submit" class="w-full py-3 bg-[#f97316] hover:bg-[#ea580c] text-white font-bold rounded-xl shadow-md transition duration-150 text-sm flex items-center justify-center cursor-pointer">
+          Sign In to Dashboard
+        </button>
+      </form>
+
+      <!-- Restore Backup Control (Auto-fill removed) -->
+      <div class="mt-4 flex items-center justify-between text-xs text-slate-500 pt-3 border-t border-slate-100">
+        <button type="button" onclick="openModal('restoreBackupModal')" class="hover:text-orange-600 font-bold flex items-center gap-1.5 transition text-[11px] text-slate-600">
+          <i class="fa-solid fa-rotate-left text-orange-500"></i><span>Restore Backup</span>
+        </button>
+      </div>
+
+      <!-- Footer text as in image -->
+      <div class="text-[11px] text-slate-400 text-center mt-6">
+        Secure Invoicematic &amp; Inventory Management Solution
+      </div>
+    </div>
+  </div>
+
   <!-- Main ERP Shell -->
-  <div id="appContainer" class="flex h-screen overflow-hidden">
+  <div id="appContainer" class="hidden flex h-screen overflow-hidden">
 
     <!-- Sidebar Navigation -->
     <aside class="w-64 bg-white text-slate-700 flex flex-col border-r border-slate-200 shadow-sm z-20 shrink-0">
@@ -915,6 +958,7 @@
           <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
             <h4 class="text-sm font-bold text-slate-800">Purchase Orders</h4>
             <div class="flex items-center gap-2">
+              <button onclick="window.print()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg font-bold text-xs shadow transition flex items-center gap-1"><i class="fa-solid fa-print"></i><span>Print PO List</span></button>
               <button onclick="openModal('purchaseModal')" class="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-bold text-xs shadow transition">Create PO</button>
             </div>
           </div>
@@ -2548,8 +2592,8 @@
     </div>
   </div>
 
-  <!-- Load Application Engine Logic (Self-healing fallbacks for external hosting & root folder deployments) -->
-  <script src="src/payvibes.js" onerror="this.onerror=null; this.src='payvibes.js'; if (location.pathname.indexOf('paywall') !== -1) { this.src='paywall.js'; }"></script>
-  <script src="src/app.js" onerror="this.onerror=null; this.src='app.js';"></script>
+  <!-- Load Application Engine Logic -->
+  <script src="/src/payvibes.js"></script>
+  <script src="/src/app.js"></script>
 </body>
 </html>
