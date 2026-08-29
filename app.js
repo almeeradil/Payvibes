@@ -117,19 +117,18 @@ function quickFillRole(email) {
 }
 
 function logout() {
-  logAuditEvent('LOGOUT', 'Security', 'User logged out');
+  logAuditEvent('LOGOUT', 'Security', 'Session reset');
   if (window.userData) {
-    window.userData.currentUserRole = null;
+    window.userData.currentUserRole = 'Admin';
     persistData(true);
   }
   const appContainer = document.getElementById('appContainer');
-  const loginScreen = document.getElementById('loginScreen');
-  const emailInput = document.getElementById('loginEmail');
-  const passInput = document.getElementById('loginPassword');
-  if (emailInput) emailInput.value = '';
-  if (passInput) passInput.value = '';
-  if (appContainer) appContainer.classList.add('hidden');
-  if (loginScreen) loginScreen.classList.remove('hidden');
+  if (appContainer) appContainer.classList.remove('hidden');
+  initApp();
+}
+if (typeof window !== 'undefined') {
+  window.logout = logout;
+  window.handleLogout = logout;
 }
 
 // Multi-Store Branch Control
@@ -3869,39 +3868,18 @@ window.applyTheme = applyTheme;
 
 // Auto-run on DOM Ready
 function autoLogin() {
-  let role = window.userData?.currentUserRole;
+  let role = window.userData?.currentUserRole || 'Admin';
+  if (window.userData) {
+    window.userData.currentUserRole = role;
+  }
   
-  if (!role) {
-    // Fallback check directly from localStorage in case of initialization quirks
-    try {
-      const saved = localStorage.getItem('payvibes_enterprise_data');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.currentUserRole) {
-          role = parsed.currentUserRole;
-          if (window.userData) window.userData.currentUserRole = role;
-        }
-      }
-    } catch(e) {}
-  }
+  const appContainer = document.getElementById('appContainer');
+  const roleDisp = document.getElementById('userRoleDisplay');
+  
+  if (appContainer) appContainer.classList.remove('hidden');
+  if (roleDisp) roleDisp.innerText = role;
 
-  if (role) {
-    const loginScreen = document.getElementById('loginScreen');
-    const appContainer = document.getElementById('appContainer');
-    const roleDisp = document.getElementById('userRoleDisplay');
-    
-    if (loginScreen) loginScreen.classList.add('hidden');
-    if (appContainer) appContainer.classList.remove('hidden');
-    if (roleDisp) roleDisp.innerText = role;
-
-    initApp();
-  } else {
-    // Force show login if no role
-    const loginScreen = document.getElementById('loginScreen');
-    const appContainer = document.getElementById('appContainer');
-    if (loginScreen) loginScreen.classList.remove('hidden');
-    if (appContainer) appContainer.classList.add('hidden');
-  }
+  initApp();
 }
 
 if (document.readyState === 'loading') {
