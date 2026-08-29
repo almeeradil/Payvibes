@@ -4,135 +4,16 @@ let salesChartInstance = null;
 let payoutChartInstance = null;
 let reportsChartInstance = null;
 
-// Default Data Generator to guarantee 100% functionality even if external script files are missing or misnamed
-function getDefaultUserData() {
-  return {
-    branches: [
-      { id: 'b-hq', name: 'Central HQ (Main Hub)', code: 'HQ-01', city: 'Lahore', isHq: true },
-      { id: 'b-khi', name: 'Karachi Mega Center', code: 'BR-KHI', city: 'Karachi', isHq: false },
-      { id: 'b-isb', name: 'Islamabad Federal Express', code: 'BR-ISB', city: 'Islamabad', isHq: false }
-    ],
-    currentBranchId: 'ALL_HQ',
-    currentUserRole: 'Admin',
-    counters: { inv: 1003, pinv: 5003, po: 1002, dn: 202, qno: 102 },
-    orders: [
-      {
-        inv: 'INV-1001', date: '2026-08-18', dueDate: '2026-08-25', custName: 'Al-Madina Medical Complex', custNtnCnic: '35202-1234567-1', custAddress: 'Shop # 12, Hospital Road, Lahore', custProvince: 'Punjab', custPhone: '0300-4567890', prodName: 'Augmentin Tablet 625mg', hsCode: '3004.90', uom: 'Boxes', qty: 10, rate: 340, taxPct: 18, discount: 100, tdsAmount: 0, tcsAmount: 3.9, amount: 3915.9, status: 'Paid', paymentMode: 'Bank Transfer', branchId: 'b-hq', irn: 'IRN-90812938129031', eWayBillNo: 'EWB-89012390123'
-      },
-      {
-        inv: 'INV-1002', date: '2026-08-19', dueDate: '2026-08-20', custName: 'Shifa Pharmacy & Wellness', custNtnCnic: '61101-7654321-3', custAddress: 'F-7 Markaz, Islamabad', custProvince: 'Islamabad', custPhone: '0321-9876543', prodName: 'Panadol Tablet 500mg', hsCode: '3004.90', uom: 'Pcs', qty: 50, rate: 35, taxPct: 18, discount: 50, amount: 2015, status: 'Unpaid', paymentMode: 'Credit', branchId: 'b-isb', irn: 'IRN-77881122334455'
-      }
-    ],
-    purchaseinvoices: [
-      { ref: 'PINV-5001', date: '2026-08-15', supplier: 'Getz Pharma Ltd', item: 'Augmentin Tablet 625mg', qty: 100, rate: 260, amt: 26000, branchId: 'b-hq' },
-      { ref: 'PINV-5002', date: '2026-08-17', supplier: 'GSK Pakistan', item: 'Panadol Tablet 500mg', qty: 500, rate: 22, amt: 11000, branchId: 'b-hq' }
-    ],
-    quotations: [
-      { qno: 'QT-101', customer: 'HealthCare Clinic', product: 'Ventolin Inhaler', rate: 450, discount: '5% Special', date: '2026-08-18', branchId: 'b-hq' }
-    ],
-    patients: [
-      { name: 'Muhammad Usman', age: 34, gender: 'Male', contact: '0300-1122334', address: 'Gulberg III, Lahore', doctor: 'Dr. Shakeel Ahmed', service: 'Consultation & BP Check', fee: 1000, status: 'Paid' }
-    ],
-    debitnotes: [
-      { ref: 'DN-201', date: '2026-08-18', party: 'Getz Pharma Ltd', origInv: 'PINV-5001', item: 'Augmentin Tablet 625mg', qty: 5, rate: 260, tax: 234, amt: 1534, reason: 'Damaged Goods' }
-    ],
-    inventory: [
-      { id: 'i-1', name: 'Augmentin Tablet 625mg', batch: 'AUG-9081', stock: 85, unit: 'Boxes', expiry: '2027-05-15', purchasePrice: 260, salePrice: 340, category: 'Antibiotics', branchId: 'b-hq' },
-      { id: 'i-2', name: 'Panadol Tablet 500mg', batch: 'PAN-4402', stock: 450, unit: 'Pcs', expiry: '2028-01-10', purchasePrice: 22, salePrice: 35, category: 'Analgesics', branchId: 'b-hq' },
-      { id: 'i-3', name: 'Risek Capsule 20mg', batch: 'RSK-1092', stock: 4, unit: 'Boxes', expiry: '2026-09-30', purchasePrice: 310, salePrice: 420, category: 'Gastroenterology', branchId: 'b-hq' },
-      { id: 'i-4', name: 'Ventolin Inhaler', batch: 'VNT-3311', stock: 25, unit: 'Pcs', expiry: '2027-11-20', purchasePrice: 340, salePrice: 450, category: 'Respiratory', branchId: 'b-khi' }
-    ],
-    customers: [
-      { id: 'c-1', name: 'Al-Madina Medical Complex', owner: 'Dr. Shakeel Ahmed', contact: '0300-4567890', email: 'almadina@gmail.com', category: 'Wholesaler', address: 'Shop # 12, Hospital Road, Lahore', ntnCnic: '35202-1234567-1', credit: 45000, loyaltyPoints: 340, walletBalance: 1250, branchId: 'b-hq' },
-      { id: 'c-2', name: 'Shifa Pharmacy & Wellness', owner: 'Mr. Kamran Javed', contact: '0321-9876543', email: 'shifa@outlook.com', category: 'Retailer', address: 'F-7 Markaz, Islamabad', ntnCnic: '61101-7654321-3', credit: 2015, loyaltyPoints: 85, walletBalance: 200, branchId: 'b-isb' }
-    ],
-    suppliers: [
-      { id: 's-1', name: 'Getz Pharma Ltd', contactPerson: 'Mr. Bilal Khan', contact: '042-35889900', email: 'orders@getzpharma.com', address: '29-30/27, K.I.A., Karachi', ntnTax: '0711928-4', credit: 65000, branchId: 'b-hq' },
-      { id: 's-2', name: 'GSK Pakistan', contactPerson: 'Mr. Tariq Mehmood', contact: '021-111475755', email: 'distribution@gsk.pk', address: 'Dockyard Road, West Wharf, Karachi', ntnTax: '0812394-1', credit: 42000, branchId: 'b-hq' }
-    ],
-    purchases: [
-      { ref: 'PO-1001', supplier: 'Getz Pharma Ltd', item: 'Risek Capsule 20mg', amt: 15500, date: '2026-08-18', branchId: 'b-hq' }
-    ],
-    payouts: [
-      { voucher: 'PV-1001', recipient: 'Getz Pharma Ltd', mode: 'Bank Transfer', amount: 25000, date: '2026-08-18' }
-    ],
-    expenses: [
-      { ref: 'EXP-1', date: '2026-08-01', category: 'Rent', desc: 'HQ Warehouse Lease - August 2026', paidTo: 'Al-Rehman Real Estate', mode: 'Bank', amount: 75000, branchId: 'b-hq' },
-      { ref: 'EXP-2', date: '2026-08-05', category: 'Utilities', desc: 'Commercial Electric Bill LESCO', paidTo: 'LESCO Lahore', mode: 'Bank', amount: 32400, branchId: 'b-hq' }
-    ],
-    cashbank: [
-      { ref: 'CB-1', date: '2026-08-01', account: 'Bank Account', type: 'Deposit / In', desc: 'Opening Bank Balance', amount: 450000, reconciled: true },
-      { ref: 'CB-2', date: '2026-08-02', account: 'Cash in Hand', type: 'Deposit / In', desc: 'Cash Register Opening', amount: 85000, reconciled: true }
-    ],
-    otherincome: [
-      { ref: 'INC-1', date: '2026-08-10', source: 'Commission', desc: 'Pharma Company Marketing Rebate', account: 'Bank Account', amount: 18500 }
-    ],
-    tdsEntries: [
-      { id: 'tds-1', section: 'Section 153 / 194Q', partyName: 'Getz Pharma Ltd', partyType: 'Vendor', invoiceRef: 'PINV-5001', date: '2026-08-15', transactionAmount: 26000, tdsRate: 2, tdsAmount: 520, status: 'Deducted' }
-    ],
-    tcsEntries: [
-      { id: 'tcs-1', section: 'Section 206C(1H)', customerName: 'Al-Madina Medical Complex', invoiceRef: 'INV-1001', date: '2026-08-18', saleAmount: 3915.9, tcsRate: 0.1, tcsAmount: 3.9, status: 'Collected' }
-    ],
-    bankStatements: [
-      { id: 'bs-1', date: '2026-08-18', description: 'ONLINE FT: AL MADINA MED INV-1001', refNo: 'TXN-901823', type: 'Credit', amount: 3915.9, matchStatus: 'Matched' },
-      { id: 'bs-2', date: '2026-08-18', description: 'IBFT OUT: GETZ PHARMA PV-1001', refNo: 'TXN-881290', type: 'Debit', amount: 25000, matchStatus: 'Matched' },
-      { id: 'bs-3', date: '2026-08-19', description: 'UNLINKED CASH DEPOSIT OVER COUNTER', refNo: 'DEP-449102', type: 'Credit', amount: 15000, matchStatus: 'Unmatched' }
-    ],
-    gstFilings: [
-      { id: 'gst-1', returnType: 'GSTR-1', periodMonth: 'July', periodYear: 2026, filingDate: '2026-08-11', arn: 'ARN-GST-2026-0789012', status: 'Submitted', totalTaxable: 450000, totalTax: 81000, errorsDetected: [], submittedBy: 'Accountant' }
-    ],
-    stockTransfers: [
-      { id: 'st-1', transferNo: 'TRF-1001', fromBranchName: 'Central HQ', toBranchName: 'Karachi Mega Center', itemName: 'Augmentin Tablet 625mg', batch: 'AUG-9081', qty: 25, date: '2026-08-18', status: 'In-Transit', notes: 'Vehicle LHE-8921 Driver Tariq' }
-    ],
-    ewayBills: [
-      { id: 'ewb-1', ewbNo: 'EWB-89012390123', date: '2026-08-18', validUntil: '2026-08-22', invNo: 'INV-1001', irn: 'IRN-90812938129031', fromGstin: '35202-0000000-1 (Lahore HQ Hub)', toGstin: '35202-1234567-1 (Punjab)', recipient: 'Al-Madina Medical Complex', destination: 'Shop # 12, Hospital Road, Lahore', transporter: 'TCS Express Logistics', transporterId: 'TRANS-9901', vehicleNo: 'LHE-9012', distanceKm: 45, cargoValue: 3915.9, itemSummary: 'Augmentin Tablet 625mg (10 Boxes)', hsnCode: '3004.90', status: 'In-Transit' }
-    ],
-    employees: [
-      { id: 'emp-1', employeeCode: 'EMP-101', name: 'Bilal Ahmad', designation: 'Store Pharmacist', department: 'Pharmacy Operations', phone: '0301-2233445', baseSalary: 55000, status: 'Active' },
-      { id: 'emp-2', employeeCode: 'EMP-102', name: 'Zainab Bibi', designation: 'Head Accountant', department: 'Accounts & Tax', phone: '0322-8899001', baseSalary: 70000, status: 'Active' }
-    ],
-    attendance: [
-      { id: 'att-1', employeeName: 'Bilal Ahmad', date: '2026-08-19', punchInTime: '08:58 AM', hoursWorked: 8.5, status: 'Present', method: 'Biometric Scanner' }
-    ],
-    payrolls: [
-      { id: 'pr-1', month: 'July', year: 2026, employeeName: 'Bilal Ahmad', baseSalary: 55000, netSalary: 55000, status: 'Disbursed', syncedToExpense: true }
-    ],
-    auditLogs: [],
-    settings: {
-      company: 'Payvibes Pharma & General Store',
-      tagline: 'Invoicematic & Inventory Management Solution',
-      address: 'Main Commercial Plaza, Ferozepur Road, Lahore, Pakistan',
-      phone: '+92 3086707676',
-      email: 'info@payvibes.pk',
-      ntn: 'NTN-7890123-4',
-      strn: 'STRN-3200981-5',
-      currency: 'Rs'
-    }
-  };
-}
-
-// Resilient Storage Initializer
+// Initialize Storage
 function initStorage() {
-  if (!window.userData) {
-    window.userData = getDefaultUserData();
-  }
   const saved = localStorage.getItem('payvibes_enterprise_data');
   if (saved) {
     try {
-      const parsed = JSON.parse(saved);
-      window.userData = Object.assign(window.userData, parsed);
+      window.userData = Object.assign(window.userData || {}, JSON.parse(saved));
     } catch (e) {
       console.error("Storage parse error, using default memory state", e);
     }
   }
-
-  // Ensure all required fields exist
-  const defaults = getDefaultUserData();
-  Object.keys(defaults).forEach(key => {
-    if (window.userData[key] === undefined || window.userData[key] === null) {
-      window.userData[key] = defaults[key];
-    }
-  });
 }
 
 let persistTimeout = null;
@@ -201,9 +82,6 @@ function handleLogin(e) {
     role = 'Cashier';
   } else if (email === 'store@gmail.com' && pass === 'aefaef') {
     role = 'Store Manager';
-  } else {
-    // Fallback: Default to Admin if any other credentials or empty inputs submitted
-    role = 'Admin';
   }
 
   if (role) {
@@ -221,33 +99,32 @@ function handleLogin(e) {
     if (roleDisp) roleDisp.innerText = role;
     if (loginErr) loginErr.classList.add('hidden');
 
-    try {
-      logAuditEvent('LOGIN', 'Security', `User authenticated as ${role}`);
-      initApp();
-    } catch (err) {
-      console.error("Initialization error:", err);
-    }
+    logAuditEvent('LOGIN', 'Security', `User authenticated as ${role}`);
+    initApp();
+  } else {
+    const err = document.getElementById('loginError');
+    if (err) err.classList.remove('hidden');
   }
 }
-if (typeof window !== 'undefined') window.handleLogin = handleLogin;
 
 function quickFillRole(email) {
   // Deprecated
 }
 
 function logout() {
-  logAuditEvent('LOGOUT', 'Security', 'Session reset');
+  logAuditEvent('LOGOUT', 'Security', 'User logged out');
   if (window.userData) {
-    window.userData.currentUserRole = 'Admin';
+    window.userData.currentUserRole = null;
     persistData(true);
   }
   const appContainer = document.getElementById('appContainer');
-  if (appContainer) appContainer.classList.remove('hidden');
-  initApp();
-}
-if (typeof window !== 'undefined') {
-  window.logout = logout;
-  window.handleLogout = logout;
+  const loginScreen = document.getElementById('loginScreen');
+  const emailInput = document.getElementById('loginEmail');
+  const passInput = document.getElementById('loginPassword');
+  if (emailInput) emailInput.value = '';
+  if (passInput) passInput.value = '';
+  if (appContainer) appContainer.classList.add('hidden');
+  if (loginScreen) loginScreen.classList.remove('hidden');
 }
 
 // Multi-Store Branch Control
@@ -751,10 +628,6 @@ function openModal(id) {
 function closeModal(id) {
   const modal = document.getElementById(id);
   if (modal) modal.classList.add('hidden');
-}
-if (typeof window !== 'undefined') {
-  window.openModal = openModal;
-  window.closeModal = closeModal;
 }
 
 // Dropdown Populators for Customers & Suppliers
@@ -3183,6 +3056,7 @@ function renderPayroll() {
       <td class="p-3"><span class="text-xs text-emerald-600 font-bold">● Auto-synced EXP</span></td>
       <td class="p-3"><span class="px-2 py-0.5 bg-purple-100 text-purple-800 rounded font-bold text-[10px]">${p.status}</span></td>
       <td class="p-3 text-right">
+        <button onclick="openPrintSalarySlip(${idx})" class="px-2.5 py-1 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded-lg text-xs font-bold flex items-center gap-1 inline-flex shadow-xs border border-purple-200"><i class="fa-solid fa-print"></i><span>Generate Slip</span></button>
       </td>
     </tr>
   `).join('');
@@ -3433,6 +3307,7 @@ function renderExpenses() {
       <td class="p-3">${e.mode}</td>
       <td class="p-3 font-black text-rose-600">Rs ${e.amount.toLocaleString()}</td>
       <td class="p-3 text-right space-x-1">
+        <button onclick="openPrintExpenseSlip('${e.ref}')" title="Print Expense Voucher" class="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs"><i class="fa-solid fa-print"></i></button>
         ${!isEmp ? `<button onclick="editExpense('${e.ref}')" title="Edit" class="p-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs"><i class="fa-solid fa-pen-to-square"></i></button>` : ''}
         ${!isEmp ? `<button onclick="deleteExpense('${e.ref}')" title="Delete" class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
       </td>
@@ -3464,6 +3339,7 @@ function renderCashBank() {
       <td class="p-3 text-slate-600">${c.desc}</td>
       <td class="p-3 font-black">Rs ${c.amount.toLocaleString()}</td>
       <td class="p-3 text-right space-x-1">
+        <button onclick="openPrintCashBankSlip('${c.ref}')" title="Print Cash/Bank Voucher" class="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs"><i class="fa-solid fa-print"></i></button>
         ${!isEmp ? `<button onclick="editCashBank('${c.ref}')" title="Edit" class="p-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs"><i class="fa-solid fa-pen-to-square"></i></button>` : ''}
         ${!isEmp ? `<button onclick="deleteCashBank('${c.ref}')" title="Delete" class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
       </td>
@@ -3528,43 +3404,25 @@ function renderCharts() {
   const payoutCanvas = document.getElementById('payoutChart');
   const reportsCanvas = document.getElementById('reportsChart');
 
-  if (typeof window.Chart === 'undefined') {
-    console.warn("Chart.js not loaded yet");
-    return;
-  }
-
-  // 1. Dynamic Sales Chart (Last 7 Days)
+  // Dynamic Sales Chart (Last 7 Days)
   const today = new Date();
   const last7Days = Array.from({length: 7}, (_, i) => {
     const d = new Date(today);
     d.setDate(today.getDate() - (6 - i));
     return d.toISOString().split('T')[0];
   });
-
-  const orders = window.userData?.orders || [];
   
-  // Calculate sales per day for last 7 days
-  let salesByDay = last7Days.map(date => {
-    const dayOrders = orders.filter(o => o.date === date);
-    return dayOrders.reduce((sum, o) => sum + Number(o.amount || 0), 0);
+  const salesByDay = last7Days.map(date => {
+    const dayOrders = (window.userData?.orders || []).filter(o => o.date === date);
+    return dayOrders.reduce((sum, o) => sum + (o.amount || 0), 0);
   });
-
-  // If no sales found for exact dates in last 7 days, provide a baseline trend based on orders or default metrics
-  const totalOrderSales = orders.reduce((sum, o) => sum + Number(o.amount || 0), 0);
-  const hasRecentSales = salesByDay.some(val => val > 0);
-  if (!hasRecentSales && totalOrderSales > 0) {
-    const avg = Math.round(totalOrderSales / 3);
-    salesByDay = [Math.round(avg * 0.4), Math.round(avg * 0.8), Math.round(avg * 0.3), Math.round(avg * 1.1), Math.round(avg * 0.6), Math.round(avg * 0.9), totalOrderSales];
-  } else if (!hasRecentSales && totalOrderSales === 0) {
-    salesByDay = [12000, 18500, 15000, 22000, 19500, 28000, 31000];
-  }
-
+  
   const labels7Days = last7Days.map(date => {
     const d = new Date(date);
     return d.toLocaleDateString('en-US', { weekday: 'short' });
   });
 
-  if (salesCanvas) {
+  if (salesCanvas && window.Chart) {
     if (salesChartInstance) salesChartInstance.destroy();
     salesChartInstance = new Chart(salesCanvas, {
       type: 'line',
@@ -3573,58 +3431,32 @@ function renderCharts() {
         datasets: [{
           label: 'Sales Revenue (Rs)',
           data: salesByDay,
-          borderColor: '#f97316',
-          backgroundColor: 'rgba(249, 115, 22, 0.15)',
-          borderWidth: 3,
-          tension: 0.4,
-          fill: true,
-          pointBackgroundColor: '#ea580c',
-          pointRadius: 4,
-          pointHoverRadius: 6
+          borderColor: '#ea580c',
+          backgroundColor: 'rgba(234, 88, 12, 0.1)',
+          tension: 0.3,
+          fill: true
         }]
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: true, position: 'top' },
-          tooltip: {
-            callbacks: {
-              label: (ctx) => ` Revenue: Rs ${Number(ctx.raw || 0).toLocaleString()}`
-            }
-          }
-        },
-        scales: {
-          y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
-          x: { grid: { display: false } }
-        }
-      }
+      options: { responsive: true, maintainAspectRatio: false }
     });
   }
 
-  // 2. Dynamic Payout & Expenses Breakdown Chart (Doughnut)
+  // Dynamic Payout/Expenses Chart
   const expenses = window.userData?.expenses || [];
-  const payouts = window.userData?.payouts || [];
   const expCategories = {};
-  
   expenses.forEach(e => {
-    const cat = e.category || 'General Expenses';
-    expCategories[cat] = (expCategories[cat] || 0) + Number(e.amount || 0);
+    const cat = e.category || 'Other';
+    expCategories[cat] = (expCategories[cat] || 0) + (e.amount || 0);
   });
-  payouts.forEach(p => {
-    const cat = p.mode ? `Payouts (${p.mode})` : 'Vendor Payouts';
-    expCategories[cat] = (expCategories[cat] || 0) + Number(p.amount || 0);
-  });
-
-  let expLabels = Object.keys(expCategories);
-  let expData = Object.values(expCategories);
-
-  if (expLabels.length === 0 || expData.every(v => v === 0)) {
-    expLabels = ['HQ Rent Lease', 'Utility LESCO', 'Vendor Payouts', 'Misc Expenses'];
-    expData = [75000, 32400, 25000, 12000];
+  const expLabels = Object.keys(expCategories);
+  const expData = Object.values(expCategories);
+  
+  if (expLabels.length === 0) {
+    expLabels.push('No Expenses Yet');
+    expData.push(1);
   }
 
-  if (payoutCanvas) {
+  if (payoutCanvas && window.Chart) {
     if (payoutChartInstance) payoutChartInstance.destroy();
     payoutChartInstance = new Chart(payoutCanvas, {
       type: 'doughnut',
@@ -3632,95 +3464,60 @@ function renderCharts() {
         labels: expLabels,
         datasets: [{
           data: expData,
-          backgroundColor: ['#f97316', '#10b981', '#6366f1', '#06b6d4', '#f59e0b', '#ec4899'],
-          borderWidth: 2,
-          borderColor: '#ffffff'
+          backgroundColor: ['#10b981', '#f59e0b', '#8b5cf6', '#06b6d4', '#ef4444', '#ec4899']
         }]
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'right', labels: { boxWidth: 12, font: { size: 11 } } },
-          tooltip: {
-            callbacks: {
-              label: (ctx) => ` ${ctx.label}: Rs ${Number(ctx.raw || 0).toLocaleString()}`
-            }
-          }
-        }
-      }
+      options: { responsive: true, maintainAspectRatio: false }
     });
   }
 
-  // 3. Dynamic Reports Chart (Sales vs Purchases 6-Month Trend)
-  const monthLabels = [];
-  const salesData = [];
-  const purchasesData = [];
-
-  for (let i = 5; i >= 0; i--) {
-    const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
-    const mStr = d.toISOString().substring(0, 7);
-    const monthName = d.toLocaleDateString('en-US', { month: 'short' });
-    monthLabels.push(monthName);
-
-    // Filter sales for this month
-    const mSales = orders
-      .filter(o => o.date && o.date.startsWith(mStr))
-      .reduce((sum, o) => sum + Number(o.amount || 0), 0);
-
-    // Filter purchases for this month
-    const purchasesList = window.userData?.purchaseinvoices || window.userData?.purchases || [];
-    const mPurchases = purchasesList
-      .filter(p => {
-        const pDate = p.date || p.dateCreated;
-        return pDate && pDate.startsWith(mStr);
-      })
-      .reduce((sum, p) => sum + Number(p.amt || p.amount || 0), 0);
-
-    salesData.push(mSales);
-    purchasesData.push(mPurchases);
+  // Dynamic Reports Chart (Sales vs Purchases by Month)
+  const monthMap = {};
+  (window.userData?.orders || []).forEach(o => {
+    if (!o.date) return;
+    const m = o.date.substring(0, 7);
+    if (!monthMap[m]) monthMap[m] = { sales: 0, purchases: 0 };
+    monthMap[m].sales += (o.amount || 0);
+  });
+  
+  const purchasesList = window.userData?.purchaseinvoices || window.userData?.purchases || [];
+  purchasesList.forEach(p => {
+    const d = p.date || p.dateCreated;
+    if (!d) return;
+    const m = d.substring(0, 7);
+    if (!monthMap[m]) monthMap[m] = { sales: 0, purchases: 0 };
+    monthMap[m].purchases += (p.amt || p.amount || 0);
+  });
+  
+  const sortedMonths = Object.keys(monthMap).sort();
+  const monthLabels = sortedMonths.map(m => {
+    const d = new Date(m + '-01');
+    return d.toLocaleDateString('en-US', { month: 'short' });
+  });
+  const salesData = sortedMonths.map(m => monthMap[m].sales);
+  const purchasesData = sortedMonths.map(m => monthMap[m].purchases);
+  
+  if (monthLabels.length === 0) {
+    monthLabels.push('Current Month');
+    salesData.push(0);
+    purchasesData.push(0);
   }
 
-  // Check if all months are zero
-  const totalMPeriodSales = salesData.reduce((a, b) => a + b, 0);
-  const totalMPeriodPurchases = purchasesData.reduce((a, b) => a + b, 0);
-
-  if (totalMPeriodSales === 0 && totalMPeriodPurchases === 0) {
-    salesData[0] = 120000; salesData[1] = 145000; salesData[2] = 130000; salesData[3] = 160000; salesData[4] = 185000; salesData[5] = orders.reduce((s, o) => s + (o.amount || 0), 0) || 210000;
-    purchasesData[0] = 80000; purchasesData[1] = 95000; purchasesData[2] = 88000; purchasesData[3] = 110000; purchasesData[4] = 125000; purchasesData[5] = 140000;
-  }
-
-  if (reportsCanvas) {
+  if (reportsCanvas && window.Chart) {
     if (reportsChartInstance) reportsChartInstance.destroy();
     reportsChartInstance = new Chart(reportsCanvas, {
       type: 'bar',
       data: {
         labels: monthLabels,
         datasets: [
-          { label: 'Sales Revenue', data: salesData, backgroundColor: '#f97316', borderRadius: 6 },
-          { label: 'Purchase Invoices', data: purchasesData, backgroundColor: '#10b981', borderRadius: 6 }
+          { label: 'Sales', data: salesData, backgroundColor: '#ea580c' },
+          { label: 'Purchases', data: purchasesData, backgroundColor: '#10b981' }
         ]
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'top' },
-          tooltip: {
-            callbacks: {
-              label: (ctx) => ` ${ctx.dataset.label}: Rs ${Number(ctx.raw || 0).toLocaleString()}`
-            }
-          }
-        },
-        scales: {
-          y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
-          x: { grid: { display: false } }
-        }
-      }
+      options: { responsive: true, maintainAspectRatio: false }
     });
   }
 }
-if (typeof window !== 'undefined') window.renderCharts = renderCharts;
 
 // Global App Initializer
 function initApp() {
@@ -3729,7 +3526,6 @@ function initApp() {
   renderSubscriptionUI();
   renderAll();
   showTab('dashboard');
-  setTimeout(() => { if (typeof renderCharts === 'function') renderCharts(); }, 100);
 
   // Bind live calculation listeners
   ['invQty', 'invRate', 'invTaxPct', 'invDiscount'].forEach(id => {
@@ -3961,161 +3757,24 @@ window.editExpense = editExpense;
 window.editCashBank = editCashBank;
 window.editIncome = editIncome;
 
-// Aliases and Helper Functions for Inline Handlers in HTML
-window.renderQuotations = renderQuotationsTable;
-window.renderDebitNotes = renderDebitNotesTable;
-window.renderPurchases = renderPurchasesTable;
-window.renderPayouts = renderPayoutsTable;
-window.renderBankRecon = renderBankReconciliation;
-window.renderReport = renderCharts;
-window.filter = function(type) { if (typeof filterProductsTable === 'function') filterProductsTable(); };
-window.writeText = function(text) {
-  if (navigator.clipboard) navigator.clipboard.writeText(text);
-  alert("Copied to clipboard: " + text);
-};
-
-window.handleBarcodeScan = function() {
-  const input = document.getElementById('barcodeInput');
-  const resultDiv = document.getElementById('barcodeResult');
-  if (!input || !resultDiv) return;
-  const val = input.value.trim().toLowerCase();
-  if (!val) {
-    resultDiv.innerHTML = '<p class="text-rose-500 font-bold">Please enter or scan a barcode/item name.</p>';
-    return;
-  }
-  const item = (window.userData?.inventory || []).find(i => 
-    (i.name && i.name.toLowerCase().includes(val)) || 
-    (i.batch && i.batch.toLowerCase().includes(val)) ||
-    (i.id && i.id.toLowerCase().includes(val))
-  );
-  if (item) {
-    resultDiv.innerHTML = `
-      <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-lg flex justify-between items-center">
-        <div>
-          <p class="font-bold text-emerald-800">${item.name} (${item.batch || 'Batch N/A'})</p>
-          <p class="text-slate-600 text-[11px]">Stock: ${item.stock} ${item.unit || 'Pcs'} | Price: Rs ${item.salePrice || item.rate || 0}</p>
-        </div>
-        <button onclick="addToCart('${item.id}')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs shadow">Add to Cart</button>
-      </div>
-    `;
-    if (!window.userData.scans) window.userData.scans = [];
-    window.userData.scans.unshift({ time: new Date().toLocaleTimeString(), code: item.name, status: 'Found & Verified' });
-    if (typeof window.renderScanLog === 'function') window.renderScanLog();
-  } else {
-    resultDiv.innerHTML = `<p class="text-amber-600 font-bold">No product matching "${val}" found in inventory.</p>`;
-  }
-};
-
-window.renderScanLog = function() {
-  const tbody = document.getElementById('scanLogBody');
-  if (!tbody) return;
-  const scans = window.userData?.scans || [];
-  if (scans.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-slate-400">No scans yet.</td></tr>';
-    return;
-  }
-  tbody.innerHTML = scans.map(s => `
-    <tr class="border-b border-slate-100">
-      <td class="p-3 font-mono text-slate-500">${s.time}</td>
-      <td class="p-3 font-bold text-slate-800">${s.code}</td>
-      <td class="p-3"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-[10px] font-bold">${s.status}</span></td>
-    </tr>
-  `).join('');
-};
-
-window.clearScanLog = function() {
-  if (window.userData) window.userData.scans = [];
-  if (typeof window.renderScanLog === 'function') window.renderScanLog();
-};
-
-window.saveGrowSettings = function() {
-  alert("Business Growth & Marketing Settings Saved Successfully!");
-};
-
-window.shareMarketing = function(type) {
-  const msg = encodeURIComponent("Welcome to Payvibes Enterprise! Check out our latest products and deals.");
-  if (type === 'whatsapp') {
-    window.open(`https://wa.me/?text=${msg}`, '_blank');
-  } else {
-    alert("SMS Broadcast Triggered successfully to registered customers.");
-  }
-};
-
-window.clearReportFilters = function() {
-  const from = document.getElementById('rptFromDate');
-  const to = document.getElementById('rptToDate');
-  if (from) from.value = '';
-  if (to) to.value = '';
-  if (typeof renderCharts === 'function') renderCharts();
-};
-
-window.printReport = function() {
-  window.print();
-};
-
-
-
 window.promptRecovery = function(type) {
-  let modal = document.getElementById('customPromptModal');
-  if (!modal) {
-    modal = document.createElement('div');
-    modal.id = 'customPromptModal';
-    modal.className = 'fixed inset-0 bg-slate-900/50 flex items-center justify-center z-[100]';
-    modal.innerHTML = `
-      <div class="bg-white rounded-xl shadow-xl p-6 w-96 max-w-[90vw]">
-        <h3 class="text-lg font-bold text-slate-800 mb-2" id="customPromptTitle">Recover Invoice</h3>
-        <p class="text-xs text-slate-500 mb-4">Enter the Invoice Number to edit/recover:</p>
-        <input type="text" id="customPromptInput" class="w-full border rounded-lg p-2 text-sm mb-2 focus:ring-2 focus:ring-cyan-500 outline-none" placeholder="Enter number...">
-        <p id="customPromptError" class="text-xs text-rose-600 font-bold hidden mb-4">Invoice not found.</p>
-        <div class="flex justify-end gap-2 mt-4">
-          <button id="customPromptCancel" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-bold transition">Cancel</button>
-          <button id="customPromptOk" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg text-sm font-bold transition">Find & Edit</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(modal);
-  }
-  
-  const input = document.getElementById('customPromptInput');
-  const btnOk = document.getElementById('customPromptOk');
-  const btnCancel = document.getElementById('customPromptCancel');
-  const errorMsg = document.getElementById('customPromptError');
-  const title = document.getElementById('customPromptTitle');
-  
-  title.innerText = type === 'sales' ? 'Recover Sales Invoice' : 'Recover Purchase Invoice';
-  input.value = '';
-  errorMsg.classList.add('hidden');
-  modal.classList.remove('hidden');
-  input.focus();
-  
-  const close = () => modal.classList.add('hidden');
-  
-  btnCancel.onclick = close;
-  
-  btnOk.onclick = () => {
-    const invNo = input.value.trim();
-    if (!invNo) return;
-    
-    if (type === 'sales') {
-      const order = (window.userData?.orders || []).find(o => o.inv.toLowerCase() === invNo.toLowerCase());
-      if (order) {
-        close();
-        editOrder(order.inv);
-      } else {
-        errorMsg.innerText = "Invoice not found in Sales records.";
-        errorMsg.classList.remove('hidden');
-      }
-    } else if (type === 'purchase') {
-      const pi = (window.userData?.purchaseinvoices || []).find(p => p.ref.toLowerCase() === invNo.toLowerCase());
-      if (pi) {
-        close();
-        editPurchaseInvoice(pi.ref);
-      } else {
-        errorMsg.innerText = "Invoice not found in Purchase records.";
-        errorMsg.classList.remove('hidden');
-      }
+  const invNo = prompt("Enter the Invoice Number to edit/recover:");
+  if (!invNo) return;
+  if (type === 'sales') {
+    const order = (window.userData?.orders || []).find(o => o.inv === invNo.trim());
+    if (order) {
+      editOrder(order.inv);
+    } else {
+      alert("Invoice not found in Sales records.");
     }
-  };
+  } else if (type === 'purchase') {
+    const pi = (window.userData?.purchaseinvoices || []).find(p => p.ref === invNo.trim());
+    if (pi) {
+      editPurchaseInvoice(pi.ref);
+    } else {
+      alert("Invoice not found in Purchase records.");
+    }
+  }
 };
 window.editPatient = editPatient;
 window.deleteOrder = deleteOrder;
@@ -4161,18 +3820,39 @@ window.applyTheme = applyTheme;
 
 // Auto-run on DOM Ready
 function autoLogin() {
-  let role = window.userData?.currentUserRole || 'Admin';
-  if (window.userData) {
-    window.userData.currentUserRole = role;
+  let role = window.userData?.currentUserRole;
+  
+  if (!role) {
+    // Fallback check directly from localStorage in case of initialization quirks
+    try {
+      const saved = localStorage.getItem('payvibes_enterprise_data');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.currentUserRole) {
+          role = parsed.currentUserRole;
+          if (window.userData) window.userData.currentUserRole = role;
+        }
+      }
+    } catch(e) {}
   }
-  
-  const appContainer = document.getElementById('appContainer');
-  const roleDisp = document.getElementById('userRoleDisplay');
-  
-  if (appContainer) appContainer.classList.remove('hidden');
-  if (roleDisp) roleDisp.innerText = role;
 
-  initApp();
+  if (role) {
+    const loginScreen = document.getElementById('loginScreen');
+    const appContainer = document.getElementById('appContainer');
+    const roleDisp = document.getElementById('userRoleDisplay');
+    
+    if (loginScreen) loginScreen.classList.add('hidden');
+    if (appContainer) appContainer.classList.remove('hidden');
+    if (roleDisp) roleDisp.innerText = role;
+
+    initApp();
+  } else {
+    // Force show login if no role
+    const loginScreen = document.getElementById('loginScreen');
+    const appContainer = document.getElementById('appContainer');
+    if (loginScreen) loginScreen.classList.remove('hidden');
+    if (appContainer) appContainer.classList.add('hidden');
+  }
 }
 
 if (document.readyState === 'loading') {
