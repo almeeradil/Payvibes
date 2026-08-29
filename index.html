@@ -80,7 +80,7 @@
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
       }
-      .no-print, nav, aside, #sidebar, #header {
+      .no-print, nav, aside, #sidebar, #header, #loginScreen {
         display: none !important;
       }
       #printInvoiceModal, #printInvoiceModal.hidden,
@@ -111,8 +111,9 @@
 
 <body class="bg-slate-100 font-sans antialiased text-slate-800">
 
+
   <!-- Main ERP Shell -->
-  <div id="appContainer" class="flex h-screen overflow-hidden">
+  <div id="appContainer" class="hidden flex h-screen overflow-hidden">
 
     <!-- Sidebar Navigation -->
     <aside class="w-64 bg-white text-slate-700 flex flex-col border-r border-slate-200 shadow-sm z-20 shrink-0">
@@ -231,6 +232,12 @@
           <i class="fa-solid fa-circle-question w-5 text-orange-500"></i><span>Help &amp; Support</span>
         </button>
       </nav>
+
+      <div class="p-3 border-t border-slate-100">
+        <button onclick="logout()" class="w-full flex items-center justify-center space-x-2 px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl font-bold transition text-xs border border-rose-200">
+          <i class="fa-solid fa-right-from-bracket"></i><span>Logout Session</span>
+        </button>
+      </div>
     </aside>
 
     <!-- Main Workspace -->
