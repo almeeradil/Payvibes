@@ -2548,8 +2548,8 @@
     </div>
   </div>
 
-  <!-- Load Application Engine Logic -->
-  <script src="./src/payvibes.js"></script>
-  <script src="./src/app.js"></script>
+  <!-- Load Application Engine Logic (Self-healing fallbacks for external hosting & root folder deployments) -->
+  <script src="src/payvibes.js" onerror="this.onerror=null; this.src='payvibes.js'; if (location.pathname.indexOf('paywall') !== -1) { this.src='paywall.js'; }"></script>
+  <script src="src/app.js" onerror="this.onerror=null; this.src='app.js';"></script>
 </body>
 </html>
