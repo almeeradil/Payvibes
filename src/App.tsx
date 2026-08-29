@@ -16,6 +16,7 @@ import {
   AppStateData, 
   UserRole, 
   SalesInvoice, 
+  Quotation,
   PurchaseOrder, 
   ExpenseVoucher, 
   InventoryItem, 
@@ -45,7 +46,6 @@ import {
 
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
-import { LoginScreen } from './components/LoginScreen';
 import { DashboardTab } from './components/DashboardTab';
 import { TaxFilingTab } from './components/TaxFilingTab';
 import { TdsTcsTab } from './components/TdsTcsTab';
@@ -70,7 +70,6 @@ import { StockTransferModal } from './components/StockTransferModal';
 
 export default function App() {
   const [data, setData] = useState<AppStateData>(() => getStoredData());
-  const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem('erp-is-logged-in') === 'true');
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [theme, setTheme] = useState<Theme>('light');
 
@@ -104,28 +103,8 @@ export default function App() {
     saveStoredData(data);
   }, [data]);
 
-  // Login handler
-  const handleLogin = (role: UserRole) => {
-    const updatedLogs = createAuditEntry(
-      data.auditLogs,
-      data.currentUser,
-      role,
-      'LOGIN',
-      'Security',
-      `User logged in successfully with ${role} credentials.`
-    );
-    setData(prev => ({
-      ...prev,
-      currentUserRole: role,
-      auditLogs: updatedLogs,
-    }));
-    setIsLoggedIn(true);
-    localStorage.setItem('erp-is-logged-in', 'true');
-  };
-
   const handleLogout = () => {
-    setIsLoggedIn(false);
-    localStorage.removeItem('erp-is-logged-in');
+    setActiveTab('dashboard');
   };
 
   const handleRoleChange = (role: UserRole) => {
@@ -582,15 +561,6 @@ export default function App() {
       auditLogs: updatedLogs,
     }));
   };
-
-  if (!isLoggedIn) {
-    return (
-      <LoginScreen
-        onLogin={handleLogin}
-        onRestoreBackup={handleRestoreBackupFile}
-      />
-    );
-  }
 
   // Calculate inventory items with stock at or below configured reorder point
   const defaultReorderPoint = data.settings.inventoryReorderPoint ?? 20;
