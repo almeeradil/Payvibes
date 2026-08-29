@@ -33,6 +33,7 @@ export interface Customer {
   province?: string;
   ntnCnic?: string;
   ntnGst?: string;
+  drugLicenseNo?: string;
   credit?: number;
   balance?: number;
   creditLimit?: number;
@@ -93,6 +94,10 @@ export interface InvoiceItemRow {
   hsCode?: string;
   hsnCode?: string;
   batch?: string;
+  expiryDate?: string;
+  packSize?: string;
+  bonusQty?: number;
+  manufacturer?: string;
   unit?: string;
   qty: number;
   rate?: number;
