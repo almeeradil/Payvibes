@@ -217,16 +217,4 @@ let userData = {
   counters: { inv: 1003, pinv: 5003, quo: 102, dn: 202, po: 1002, pv: 1002, exp: 3, cb: 3, inc: 2 }
 };
 
-if (typeof window !== 'undefined') {
-  if (!window.userData) {
-    window.userData = userData;
-  } else {
-    // Safely preserve existing properties and merge missing defaults
-    Object.keys(userData).forEach(key => {
-      if (window.userData[key] === undefined || window.userData[key] === null) {
-        window.userData[key] = userData[key];
-      }
-    });
-  }
-}
-
+window.userData = userData;
