@@ -114,205 +114,46 @@
 <body class="bg-slate-100 font-sans antialiased text-slate-800">
 
   <!-- Login & Lock Screen (Matched to uploaded design spec) -->
-  <div id="loginScreen" class="fixed inset-0 bg-[#f8f9fa] z-50 overflow-y-auto flex flex-col justify-between select-none">
-    
-    <!-- Ambient Background Glow Effects -->
-    <div class="fixed -top-32 -left-32 w-96 h-96 bg-orange-200/40 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="fixed top-1/2 -right-32 w-96 h-96 bg-orange-100/30 rounded-full blur-3xl pointer-events-none"></div>
+  <div id="loginScreen" class="fixed inset-0 bg-[#0c1322] z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 sm:p-10 border border-slate-100 text-slate-900 relative">
+      <!-- Circular Red Icon with Posvibe Logo -->
+      <div class="w-16 h-16 rounded-full bg-slate-900 flex items-center justify-center mx-auto mb-4 p-2 shadow-md border-2 border-orange-500/20">
+        <img src="https://zuraizadil32-cyber.github.io/Payvubes/logo.png" alt="Posvibe logo" class="w-full h-full object-contain">
+      </div>
 
-    <!-- Main Container Grid -->
-    <div class="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 my-auto">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+      <!-- Title & Subtitle -->
+      <h1 class="text-2xl font-black text-slate-900 text-center tracking-tight">Posvibe</h1>
+      <p class="text-xs text-slate-500 text-center mt-1 mb-6 font-medium">Sign in with your authorized system credentials</p>
 
-        <!-- Left Brand Showcase Column -->
-        <div class="lg:col-span-7 space-y-8 pr-0 lg:pr-6">
-          
-          <!-- Logo & Brand Header -->
-          <div class="flex items-center space-x-3">
-            <div class="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center p-1.5 shadow-md border border-orange-500/30 shrink-0">
-              <img src="https://zuraizadil32-cyber.github.io/Payvubes/logo.png" alt="POSVIBE logo" class="w-full h-full object-contain">
-            </div>
-            <div>
-              <div class="flex items-center space-x-1">
-                <span class="font-black text-slate-900 text-2xl tracking-tight">POS</span>
-                <span class="font-black text-orange-600 text-2xl tracking-tight">VIBE</span>
-              </div>
-              <p class="text-xs text-slate-500 font-medium">Secure Invoicing &amp; Inventory Management Solution</p>
-            </div>
-          </div>
-
-          <!-- Hero Headings -->
-          <div class="space-y-3">
-            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-tight">
-              Manage Smarter.<br>
-              <span class="text-orange-600">Grow Faster.</span>
-            </h1>
-            <p class="text-sm sm:text-base text-slate-600 max-w-xl leading-relaxed">
-              POSVIBE helps businesses streamline invoicing, track inventory in real-time, and grow with confidence.
-            </p>
-          </div>
-
-          <!-- Feature Bullets -->
-          <div class="space-y-4 pt-2">
-            <div class="flex items-start space-x-3.5">
-              <div class="w-10 h-10 rounded-xl bg-orange-100/70 border border-orange-200/80 flex items-center justify-center shrink-0 text-orange-600 shadow-xs">
-                <i class="fa-solid fa-shield-halved text-base"></i>
-              </div>
-              <div>
-                <h4 class="text-sm font-extrabold text-slate-900">Secure &amp; Reliable</h4>
-                <p class="text-xs text-slate-500 mt-0.5">Your data is protected with enterprise-grade security.</p>
-              </div>
-            </div>
-
-            <div class="flex items-start space-x-3.5">
-              <div class="w-10 h-10 rounded-xl bg-orange-100/70 border border-orange-200/80 flex items-center justify-center shrink-0 text-orange-600 shadow-xs">
-                <i class="fa-solid fa-cloud-arrow-up text-base"></i>
-              </div>
-              <div>
-                <h4 class="text-sm font-extrabold text-slate-900">Automatic Backups</h4>
-                <p class="text-xs text-slate-500 mt-0.5">Rest easy with automatic backups and easy recovery.</p>
-              </div>
-            </div>
-
-            <div class="flex items-start space-x-3.5">
-              <div class="w-10 h-10 rounded-xl bg-orange-100/70 border border-orange-200/80 flex items-center justify-center shrink-0 text-orange-600 shadow-xs">
-                <i class="fa-solid fa-chart-column text-base"></i>
-              </div>
-              <div>
-                <h4 class="text-sm font-extrabold text-slate-900">Business Insights</h4>
-                <p class="text-xs text-slate-500 mt-0.5">Get real-time insights and reports to make better decisions.</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Floating Dashboard Preview Widgets -->
-          <div class="pt-2 hidden sm:block">
-            <div class="flex flex-wrap items-center gap-4">
-              <!-- Card 1: Total Sales -->
-              <div class="bg-white/90 backdrop-blur-md p-3.5 rounded-2xl border border-slate-200/80 shadow-md flex items-center space-x-3">
-                <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center shrink-0">
-                  <i class="fa-solid fa-file-circle-check text-sm"></i>
-                </div>
-                <div>
-                  <span class="text-[9.5px] uppercase font-extrabold text-slate-400 tracking-wider">Total Sales</span>
-                  <div class="text-sm font-black text-slate-900">$ 24,860.50</div>
-                  <span class="text-[9.5px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200/60">+12.5% from last month</span>
-                </div>
-              </div>
-
-              <!-- Card 2: Low Stock Alert -->
-              <div class="bg-white/90 backdrop-blur-md p-3.5 rounded-2xl border border-slate-200/80 shadow-md flex items-center space-x-3">
-                <div class="w-9 h-9 rounded-xl bg-orange-50 text-orange-600 border border-orange-200 flex items-center justify-center shrink-0">
-                  <i class="fa-solid fa-box-open text-sm"></i>
-                </div>
-                <div>
-                  <span class="text-[9.5px] uppercase font-extrabold text-slate-400 tracking-wider">Low Stock Items</span>
-                  <div class="text-sm font-black text-slate-900">8</div>
-                  <span class="text-[9.5px] font-bold text-orange-600 hover:underline cursor-pointer">View Details</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
+      <form onsubmit="handleLogin(event); return false;" class="space-y-4">
+        <div>
+          <label class="block text-[10.5px] font-extrabold uppercase tracking-wider text-slate-600 mb-1.5">EMAIL ADDRESS</label>
+          <input type="email" id="loginEmail" value="admin@gmail.com" placeholder="Email" class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition placeholder:text-slate-400">
         </div>
-
-        <!-- Right Login Card Column -->
-        <div class="lg:col-span-5 w-full">
-          <div class="bg-white rounded-3xl shadow-xl border border-slate-200/80 p-7 sm:p-9 relative">
-            
-            <!-- Heading -->
-            <h2 class="text-2xl font-black text-slate-900 tracking-tight">Welcome Back!</h2>
-            <p class="text-xs text-slate-500 mt-1 mb-6 font-medium">Sign in with your authorized system credentials</p>
-
-            <!-- Login Form -->
-            <form onsubmit="handleLogin(event); return false;" class="space-y-4">
-              
-              <!-- EMAIL ADDRESS -->
-              <div>
-                <label class="block text-[10.5px] font-extrabold uppercase tracking-wider text-slate-700 mb-1.5">EMAIL ADDRESS</label>
-                <div class="relative">
-                  <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                    <i class="fa-regular fa-envelope text-sm"></i>
-                  </span>
-                  <input type="email" id="loginEmail" value="admin@gmail.com" placeholder="Enter your email address" required class="w-full pl-10 pr-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition placeholder:text-slate-400 font-medium">
-                </div>
-              </div>
-
-              <!-- PASSWORD -->
-              <div>
-                <label class="block text-[10.5px] font-extrabold uppercase tracking-wider text-slate-700 mb-1.5">PASSWORD</label>
-                <div class="relative">
-                  <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                    <i class="fa-solid fa-lock text-sm"></i>
-                  </span>
-                  <input type="password" id="loginPassword" value="aefdef" placeholder="Enter your password" required class="w-full pl-10 pr-10 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition placeholder:text-slate-400 font-medium">
-                  <button type="button" onclick="toggleLoginPasswordVisibility()" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition" title="Toggle password visibility">
-                    <i id="loginPasswordToggleIcon" class="fa-solid fa-eye text-sm"></i>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Remember me & Forgot Password -->
-              <div class="flex items-center justify-between text-xs pt-0.5">
-                <label class="flex items-center space-x-2 cursor-pointer text-slate-600 select-none">
-                  <input type="checkbox" checked class="w-4 h-4 rounded border-slate-300 text-orange-600 focus:ring-orange-500 accent-orange-600 cursor-pointer">
-                  <span class="font-semibold text-xs">Remember me</span>
-                </label>
-                <button type="button" onclick="alert('Please contact your system administrator to reset password credentials.')" class="font-bold text-orange-600 hover:text-orange-700 transition cursor-pointer">
-                  Forgot Password?
-                </button>
-              </div>
-
-              <!-- Login Error Message -->
-              <div id="loginError" class="hidden text-xs text-rose-600 bg-rose-50 border border-rose-200 p-2.5 rounded-xl text-center font-bold">
-                Invalid credentials. Please verify your email or password.
-              </div>
-
-              <!-- Primary Sign In Button -->
-              <button type="button" onclick="handleLogin(event)" class="w-full py-3.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-extrabold rounded-xl shadow-lg shadow-orange-500/25 transition duration-150 text-sm flex items-center justify-center space-x-2 cursor-pointer transform hover:-translate-y-0.5 active:translate-y-0">
-                <span>Sign In to Dashboard</span>
-                <i class="fa-solid fa-arrow-right text-xs"></i>
-              </button>
-            </form>
-
-            <!-- Divider -->
-            <div class="relative my-5">
-              <div class="absolute inset-0 flex items-center">
-                <div class="w-full border-t border-slate-200"></div>
-              </div>
-              <div class="relative flex justify-center text-xs">
-                <span class="bg-white px-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">OR</span>
-              </div>
-            </div>
-
-            <!-- Secondary Restore Backup Button -->
-            <button type="button" onclick="openModal('restoreBackupModal')" class="w-full py-2.5 bg-white border border-slate-200 hover:border-orange-200 hover:bg-orange-50/50 text-slate-700 font-bold rounded-xl text-xs flex items-center justify-center space-x-2 transition cursor-pointer shadow-2xs">
-              <i class="fa-solid fa-rotate-left text-orange-500"></i>
-              <span class="text-orange-600">Restore Backup</span>
-            </button>
-
-            <!-- Security Footnote -->
-            <div class="flex items-center justify-center space-x-1.5 text-[11px] text-slate-400 mt-5 font-medium">
-              <i class="fa-solid fa-lock text-slate-400 text-xs"></i>
-              <span>Your data is 100% secure with us.</span>
-            </div>
-
-          </div>
+        <div>
+          <label class="block text-[10.5px] font-extrabold uppercase tracking-wider text-slate-600 mb-1.5">PASSWORD</label>
+          <input type="password" id="loginPassword" value="aefdef" placeholder="••••••••" class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition placeholder:text-slate-400">
         </div>
+        <div id="loginError" class="hidden text-xs text-rose-600 bg-rose-50 border border-rose-200 p-2.5 rounded-xl text-center font-bold">
+          Invalid credentials. Please verify your email or password.
+        </div>
+        <button type="button" onclick="handleLogin(event)" class="w-full py-3 bg-[#f97316] hover:bg-[#ea580c] text-white font-bold rounded-xl shadow-md transition duration-150 text-sm flex items-center justify-center cursor-pointer">
+          Sign In to Dashboard
+        </button>
+      </form>
 
+      <!-- Restore Backup Control (Auto-fill removed) -->
+      <div class="mt-4 flex items-center justify-between text-xs text-slate-500 pt-3 border-t border-slate-100">
+        <button type="button" onclick="openModal('restoreBackupModal')" class="hover:text-orange-600 font-bold flex items-center gap-1.5 transition text-[11px] text-slate-600 cursor-pointer">
+          <i class="fa-solid fa-arrow-right text-orange-500"></i><span>Restore Backup</span>
+        </button>
+      </div>
+
+      <!-- Footer text as in image -->
+      <div class="text-[11px] text-slate-400 text-center mt-6">
+        Secure Invoicematic &amp; Inventory Management Solution
       </div>
     </div>
-
-    <!-- Bottom Footer -->
-    <div class="relative z-10 w-full text-center py-4 text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6 border-t border-slate-200/80 bg-white/60 backdrop-blur-xs">
-      <span>© 2026 POSVIBE. All rights reserved.</span>
-      <div class="flex items-center space-x-4">
-        <a href="#" onclick="alert('POSVIBE Privacy Policy: All business data is encrypted and stored locally/privately.'); return false;" class="hover:text-orange-600 transition">Privacy Policy</a>
-        <span class="text-slate-300">|</span>
-        <a href="#" onclick="alert('POSVIBE Terms of Service: Authorized business use only.'); return false;" class="hover:text-orange-600 transition">Terms of Service</a>
-      </div>
-    </div>
-
   </div>
 
   <!-- Main ERP Shell -->
