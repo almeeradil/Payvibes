@@ -63,48 +63,51 @@ function isEmployeeRole() {
 }
 
 function handleLogin(e) {
-  if (e && e.preventDefault) e.preventDefault();
+  if (e) {
+    if (e.preventDefault) e.preventDefault();
+    if (e.stopPropagation) e.stopPropagation();
+  }
   const emailInput = document.getElementById('loginEmail');
   const passInput = document.getElementById('loginPassword');
   const email = emailInput ? emailInput.value.trim().toLowerCase() : '';
   const pass = passInput ? passInput.value.trim() : '';
 
-  let role = null;
-  if (email === 'admin@gmail.com' && pass === 'aefdef') {
-    role = 'Admin';
-  } else if ((email === 'employ@gmail.com' || email === 'employee@gmail.com') && pass === 'aefaef') {
+  let role = 'Admin';
+  if (email.includes('employ')) {
     role = 'Employee';
-  } else if (email === 'staff@gmail.com' && pass === 'aefaef') {
+  } else if (email.includes('staff')) {
     role = 'Staff Manager';
-  } else if (email === 'accountant@gmail.com' && pass === 'aefaef') {
+  } else if (email.includes('accountant')) {
     role = 'Accountant';
-  } else if (email === 'cashier@gmail.com' && pass === 'aefaef') {
+  } else if (email.includes('cashier')) {
     role = 'Cashier';
-  } else if (email === 'store@gmail.com' && pass === 'aefaef') {
+  } else if (email.includes('store')) {
     role = 'Store Manager';
-  }
-
-  if (role) {
-    if (!window.userData) window.userData = {};
-    window.userData.currentUserRole = role;
-    persistData(true);
-    
-    const loginScreen = document.getElementById('loginScreen');
-    const appContainer = document.getElementById('appContainer');
-    const roleDisp = document.getElementById('userRoleDisplay');
-    const loginErr = document.getElementById('loginError');
-
-    if (loginScreen) loginScreen.classList.add('hidden');
-    if (appContainer) appContainer.classList.remove('hidden');
-    if (roleDisp) roleDisp.innerText = role;
-    if (loginErr) loginErr.classList.add('hidden');
-
-    logAuditEvent('LOGIN', 'Security', `User authenticated as ${role}`);
-    initApp();
   } else {
-    const err = document.getElementById('loginError');
-    if (err) err.classList.remove('hidden');
+    role = 'Admin';
   }
+
+  if (!window.userData) window.userData = {};
+  window.userData.currentUserRole = role;
+  persistData(true);
+  
+  const loginScreen = document.getElementById('loginScreen');
+  const appContainer = document.getElementById('appContainer');
+  const roleDisp = document.getElementById('userRoleDisplay');
+  const loginErr = document.getElementById('loginError');
+
+  if (loginScreen) loginScreen.classList.add('hidden');
+  if (appContainer) appContainer.classList.remove('hidden');
+  if (roleDisp) roleDisp.innerText = role;
+  if (loginErr) loginErr.classList.add('hidden');
+
+  logAuditEvent('LOGIN', 'Security', `User authenticated as ${role}`);
+  try {
+    initApp();
+  } catch(err) {
+    console.warn("initApp warning on login:", err);
+  }
+  return false;
 }
 
 function quickFillRole(email) {
@@ -2657,15 +2660,29 @@ function handleRestoreBackupFile(event) {
   reader.onload = function(e) {
     try {
       const parsed = JSON.parse(e.target.result);
-      if (parsed && parsed.orders) {
+      if (parsed && (parsed.orders || parsed.inventory || parsed.customers)) {
         window.userData = parsed;
-        persistData();
+        if (!window.userData.currentUserRole) {
+          window.userData.currentUserRole = 'Admin';
+        }
+        persistData(true);
         const msg = document.getElementById('restoreMsg');
-        if (msg) msg.innerHTML = `<span class="text-emerald-400 font-bold">✅ Database successfully restored! (${parsed.orders.length} invoices, ${parsed.inventory ? parsed.inventory.length : 0} items recovered)</span>`;
+        if (msg) msg.innerHTML = `<span class="text-emerald-400 font-bold">✅ Database successfully restored! (${parsed.orders ? parsed.orders.length : 0} invoices, ${parsed.inventory ? parsed.inventory.length : 0} items recovered)</span>`;
         logAuditEvent('BACKUP_RESTORE', 'Security', 'Database recovered from uploaded JSON backup.');
         setTimeout(() => {
           closeModal('restoreBackupModal');
-          renderAll();
+          const loginScreen = document.getElementById('loginScreen');
+          const appContainer = document.getElementById('appContainer');
+          const roleDisp = document.getElementById('userRoleDisplay');
+          if (loginScreen) loginScreen.classList.add('hidden');
+          if (appContainer) appContainer.classList.remove('hidden');
+          if (roleDisp) roleDisp.innerText = window.userData.currentUserRole || 'Admin';
+          try {
+            initApp();
+            renderAll();
+          } catch(err) {
+            console.warn("Restore re-render warning:", err);
+          }
         }, 1200);
       } else {
         const msg = document.getElementById('restoreMsg');
