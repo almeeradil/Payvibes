@@ -217,4 +217,6 @@ let userData = {
   counters: { inv: 1003, pinv: 5003, quo: 102, dn: 202, po: 1002, pv: 1002, exp: 3, cb: 3, inc: 2 }
 };
 
+window.masterMedicinesList = masterMedicinesList;
+window.INITIAL_BRANCHES = INITIAL_BRANCHES;
 window.userData = userData;
