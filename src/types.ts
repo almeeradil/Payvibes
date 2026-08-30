@@ -111,6 +111,16 @@ export interface InvoiceItemRow {
 
 export type InvoiceItem = InvoiceItemRow;
 
+export interface InvoiceHistoryEntry {
+  id: string;
+  timestamp: string;
+  action: 'Created' | 'Updated' | 'Payment Recorded' | 'Status Changed' | 'E-Way Bill Generated' | 'Printed' | 'Reminder Sent' | string;
+  userName: string;
+  userRole?: string;
+  details: string;
+  changes?: { field: string; oldValue: string; newValue: string }[];
+}
+
 export interface SalesInvoice {
   id: string;
   inv: string;
@@ -161,6 +171,7 @@ export interface SalesInvoice {
   lastReminderDate?: string;
   loyaltyPointsEarned?: number;
   cashbackEarned?: number;
+  history?: InvoiceHistoryEntry[];
 }
 
 export interface PurchaseInvoice {
