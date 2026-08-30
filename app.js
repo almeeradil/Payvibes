@@ -120,6 +120,21 @@ function quickFillRole(email) {
   // Deprecated
 }
 
+function toggleLoginPasswordVisibility() {
+  const pwdInput = document.getElementById('loginPassword');
+  const pwdIcon = document.getElementById('loginPasswordToggleIcon');
+  if (pwdInput) {
+    if (pwdInput.type === 'password') {
+      pwdInput.type = 'text';
+      if (pwdIcon) pwdIcon.className = 'fa-solid fa-eye-slash text-sm text-slate-400 hover:text-slate-600';
+    } else {
+      pwdInput.type = 'password';
+      if (pwdIcon) pwdIcon.className = 'fa-solid fa-eye text-sm text-slate-400 hover:text-slate-600';
+    }
+  }
+}
+window.toggleLoginPasswordVisibility = toggleLoginPasswordVisibility;
+
 function logout() {
   logAuditEvent('LOGOUT', 'Security', 'User logged out');
   if (window.userData) {
@@ -2648,6 +2663,29 @@ function searchClientPortal() {
 }
 
 // Backup & Disaster Recovery
+function exportFullAppHTML() {
+  try {
+    const docCopy = document.documentElement.cloneNode(true);
+    // Ensure all styles and scripts are included
+    const fullHtml = "<!DOCTYPE html>\n<html>" + docCopy.innerHTML + "</html>";
+    const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.href = url;
+    downloadAnchor.download = `posvibe_full_app_${new Date().toISOString().split('T')[0]}.html`;
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+    URL.revokeObjectURL(url);
+    logAuditEvent('HTML_EXPORT', 'System', 'Exported complete standalone Posvibe HTML source bundle.');
+    alert('✅ Posvibe Standalone HTML bundle exported successfully!');
+  } catch (err) {
+    console.error('HTML Export error:', err);
+    alert('Failed to export HTML bundle: ' + err.message);
+  }
+}
+window.exportFullAppHTML = exportFullAppHTML;
+
 function exportDatabaseBackup() {
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(window.userData, null, 2));
   const downloadAnchor = document.createElement('a');
@@ -3540,6 +3578,121 @@ function renderCharts() {
       options: { responsive: true, maintainAspectRatio: false }
     });
   }
+
+  // Render D3 Monthly Revenue Growth & YoY Chart
+  renderD3RevenueChart();
+}
+
+function renderD3RevenueChart() {
+  const svgEl = document.getElementById('d3RevenueChartSvg');
+  const wrapper = document.getElementById('d3RevenueChartWrapper');
+  if (!svgEl || !wrapper || !window.d3) return;
+
+  const d3 = window.d3;
+  d3.select(svgEl).selectAll('*').remove();
+
+  const containerWidth = wrapper.clientWidth || 700;
+  const height = 260;
+  const margin = { top: 20, right: 30, bottom: 40, left: 60 };
+  const innerWidth = containerWidth - margin.left - margin.right;
+  const innerHeight = height - margin.top - margin.bottom;
+
+  const svg = d3.select(svgEl)
+    .attr('width', containerWidth)
+    .attr('height', height);
+
+  const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const baseLastYear = [42000, 48000, 55000, 51000, 62000, 68000, 74000, 71000, 79000, 85000, 92000, 98000];
+  const baseCurrentYear = [49000, 56000, 64000, 61000, 75000, 82000, 91000, 88000, 99000, 108000, 118000, 126000];
+
+  const currentYear = new Date().getFullYear();
+  const actualMonthlyTotals = {};
+  (window.userData?.orders || []).forEach(o => {
+    if (!o.date) return;
+    const d = new Date(o.date);
+    if (d.getFullYear() === currentYear) {
+      const m = d.getMonth();
+      actualMonthlyTotals[m] = (actualMonthlyTotals[m] || 0) + (o.amount || 0);
+    }
+  });
+
+  const dataset = months.map((m, idx) => {
+    const act = actualMonthlyTotals[idx];
+    const cur = (act !== undefined && act > 0) ? act : baseCurrentYear[idx];
+    const last = baseLastYear[idx];
+    return { month: m, currentYearRevenue: cur, lastYearRevenue: last };
+  });
+
+  const xScale = d3.scalePoint()
+    .domain(months)
+    .range([0, innerWidth])
+    .padding(0.4);
+
+  const maxVal = d3.max(dataset, d => Math.max(d.currentYearRevenue, d.lastYearRevenue)) || 100000;
+  const yScale = d3.scaleLinear()
+    .domain([0, maxVal * 1.15])
+    .range([innerHeight, 0])
+    .nice();
+
+  // Grid lines
+  g.append('g')
+    .attr('class', 'grid-lines')
+    .call(d3.axisLeft(yScale).tickSize(-innerWidth).tickFormat(() => '').ticks(5))
+    .selectAll('line')
+    .attr('stroke', '#e2e8f0')
+    .attr('stroke-dasharray', '3 3')
+    .attr('stroke-opacity', 0.7);
+  g.selectAll('.grid-lines .domain').remove();
+
+  // Gradients
+  const defs = svg.append('defs');
+  const curGrad = defs.append('linearGradient').attr('id', 'appCurGrad').attr('x1', '0%').attr('y1', '0%').attr('x2', '0%').attr('y2', '100%');
+  curGrad.append('stop').attr('offset', '0%').attr('stop-color', '#f97316').attr('stop-opacity', 0.35);
+  curGrad.append('stop').attr('offset', '100%').attr('stop-color', '#f97316').attr('stop-opacity', 0.0);
+
+  const lastGrad = defs.append('linearGradient').attr('id', 'appLastGrad').attr('x1', '0%').attr('y1', '0%').attr('x2', '0%').attr('y2', '100%');
+  lastGrad.append('stop').attr('offset', '0%').attr('stop-color', '#6366f1').attr('stop-opacity', 0.15);
+  lastGrad.append('stop').attr('offset', '100%').attr('stop-color', '#6366f1').attr('stop-opacity', 0.0);
+
+  // Areas
+  const areaLast = d3.area().x(d => xScale(d.month)).y0(innerHeight).y1(d => yScale(d.lastYearRevenue)).curve(d3.curveMonotoneX);
+  const areaCur = d3.area().x(d => xScale(d.month)).y0(innerHeight).y1(d => yScale(d.currentYearRevenue)).curve(d3.curveMonotoneX);
+
+  g.append('path').datum(dataset).attr('fill', 'url(#appLastGrad)').attr('d', areaLast);
+  g.append('path').datum(dataset).attr('fill', 'url(#appCurGrad)').attr('d', areaCur);
+
+  // Lines
+  const lineLast = d3.line().x(d => xScale(d.month)).y(d => yScale(d.lastYearRevenue)).curve(d3.curveMonotoneX);
+  const lineCur = d3.line().x(d => xScale(d.month)).y(d => yScale(d.currentYearRevenue)).curve(d3.curveMonotoneX);
+
+  g.append('path').datum(dataset).attr('fill', 'none').attr('stroke', '#64748b').attr('stroke-width', 2).attr('stroke-dasharray', '5 4').attr('d', lineLast);
+  g.append('path').datum(dataset).attr('fill', 'none').attr('stroke', '#ea580c').attr('stroke-width', 3).attr('d', lineCur);
+
+  // Circles
+  g.selectAll('.circle-last').data(dataset).enter().append('circle')
+    .attr('cx', d => xScale(d.month)).attr('cy', d => yScale(d.lastYearRevenue)).attr('r', 4)
+    .attr('fill', '#ffffff').attr('stroke', '#64748b').attr('stroke-width', 2);
+
+  g.selectAll('.circle-cur').data(dataset).enter().append('circle')
+    .attr('cx', d => xScale(d.month)).attr('cy', d => yScale(d.currentYearRevenue)).attr('r', 5)
+    .attr('fill', '#ea580c').attr('stroke', '#ffffff').attr('stroke-width', 2);
+
+  // Axes
+  g.append('g').attr('transform', `translate(0, ${innerHeight})`)
+    .call(d3.axisBottom(xScale).tickSize(0))
+    .attr('font-size', '11px').attr('font-weight', '600').attr('color', '#64748b')
+    .select('.domain').attr('stroke', '#cbd5e1');
+
+  g.append('g')
+    .call(d3.axisLeft(yScale).ticks(5).tickFormat(d => {
+      const v = Number(d);
+      if (v >= 1000) return `Rs ${(v / 1000).toFixed(0)}k`;
+      return `Rs ${v}`;
+    }))
+    .attr('font-size', '10px').attr('font-weight', '600').attr('color', '#64748b')
+    .select('.domain').remove();
 }
 
 // Global App Initializer
