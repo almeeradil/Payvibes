@@ -23,7 +23,11 @@ import {
   ShieldAlert,
   Users,
   Building2,
-  Receipt
+  Receipt,
+  Filter,
+  Calendar,
+  X,
+  RotateCcw
 } from 'lucide-react';
 import { SalesInvoice, InvoiceItem, Customer, InventoryItem, SystemSettings } from '../types';
 import { printSalesInvoice } from '../services/printSlip';
@@ -61,6 +65,10 @@ export const SalesTab: React.FC<SalesTabProps> = ({
   const [showNewModal, setShowNewModal] = useState(false);
   const [showBatchPickerModal, setShowBatchPickerModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterCustomer, setFilterCustomer] = useState('all');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'Paid' | 'Unpaid'>('all');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [selectedHubCustomerId, setSelectedHubCustomerId] = useState(customers[0]?.id || '');
 
   // AI OCR & Voice State
@@ -129,7 +137,7 @@ export const SalesTab: React.FC<SalesTabProps> = ({
 
   // Handlers for Invoice Items
   const handleAddItem = () => {
-    const defaultInv = inventory[0];
+    const defaultInv = inventory[items.length % inventory.length] || inventory[0];
     const newItem: InvoiceItem = {
       id: 'item-' + Math.random().toString(36).substr(2, 7),
       name: defaultInv?.name || 'New Medicine',
@@ -140,11 +148,59 @@ export const SalesTab: React.FC<SalesTabProps> = ({
       hsnCode: defaultInv?.hsnCode || defaultInv?.hsCode || '3004.9090',
       batch: defaultInv?.batch || 'BT-' + Math.floor(1000 + Math.random() * 9000),
       expiryDate: defaultInv?.expiryDate || defaultInv?.expiry || '2027-12-31',
-      packSize: 'Box',
+      packSize: defaultInv?.unit || 'Box',
       discount: 0,
       total: (defaultInv?.salePrice || defaultInv?.price || 100) * 10 * 1.05,
     };
-    setItems([...items, newItem]);
+    setItems(prev => [...prev, newItem]);
+  };
+
+  const handleAddMultipleRows = (count: number) => {
+    const newRows: InvoiceItem[] = [];
+    for (let i = 0; i < count; i++) {
+      const invMatch = inventory[(items.length + i) % inventory.length] || inventory[0];
+      const price = invMatch?.salePrice || invMatch?.price || 100;
+      newRows.push({
+        id: 'item-' + Math.random().toString(36).substr(2, 7) + '-' + i,
+        name: invMatch?.name || 'Medicine ' + (items.length + i + 1),
+        qty: 10,
+        bonusQty: 0,
+        price,
+        taxPercent: 5,
+        hsnCode: invMatch?.hsnCode || invMatch?.hsCode || '3004.9090',
+        batch: invMatch?.batch || 'BT-' + Math.floor(1000 + Math.random() * 9000),
+        expiryDate: invMatch?.expiryDate || invMatch?.expiry || '2027-12-31',
+        packSize: invMatch?.unit || 'Box',
+        discount: 0,
+        total: price * 10 * 1.05,
+      });
+    }
+    setItems(prev => [...prev, ...newRows]);
+  };
+
+  const handleOpenInvoiceWithTenRows = () => {
+    const newRows: InvoiceItem[] = [];
+    for (let i = 0; i < 10; i++) {
+      const invMatch = inventory[i % inventory.length] || inventory[0];
+      const price = invMatch?.salePrice || invMatch?.price || 100;
+      newRows.push({
+        id: 'item-' + Math.random().toString(36).substr(2, 7) + '-' + i,
+        name: invMatch?.name || 'Medicine ' + (i + 1),
+        qty: 10,
+        bonusQty: 0,
+        price,
+        taxPercent: 5,
+        hsnCode: invMatch?.hsnCode || invMatch?.hsCode || '3004.9090',
+        batch: invMatch?.batch || 'BT-' + Math.floor(1000 + Math.random() * 9000),
+        expiryDate: invMatch?.expiryDate || invMatch?.expiry || '2027-12-31',
+        packSize: invMatch?.unit || 'Box',
+        discount: 0,
+        total: price * 10 * 1.05,
+      });
+    }
+    setItems(newRows);
+    setSelectedCustomerId(hubCustomer?.id || customers[0]?.id);
+    setShowNewModal(true);
   };
 
   const handleRemoveItem = (idx: number) => {
@@ -452,11 +508,45 @@ export const SalesTab: React.FC<SalesTabProps> = ({
     recognition.start();
   };
 
-  // Filtered Orders
-  const filteredOrders = orders.filter(o => 
-    o.inv.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    o.custName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Multi-Filter Search logic for Sales Tax Invoices
+  const filteredOrders = orders.filter(o => {
+    // 1. Search text filter (Invoice #, Customer name, or Medicine items)
+    const searchLower = searchTerm.toLowerCase().trim();
+    const matchesSearch = !searchLower ||
+      o.inv.toLowerCase().includes(searchLower) ||
+      o.custName.toLowerCase().includes(searchLower) ||
+      (o.items && o.items.some(i => (i.prodName || i.name || '').toLowerCase().includes(searchLower)));
+
+    // 2. Customer name filter
+    const matchesCustomer = filterCustomer === 'all' || 
+      o.custName.toLowerCase() === filterCustomer.toLowerCase();
+
+    // 3. Invoice status filter (Paid / Unpaid)
+    const matchesStatus = filterStatus === 'all' ||
+      (filterStatus === 'Paid' && o.status === 'Paid') ||
+      (filterStatus === 'Unpaid' && o.status !== 'Paid');
+
+    // 4. Date range filter
+    let matchesDate = true;
+    if (startDate) {
+      matchesDate = matchesDate && o.date >= startDate;
+    }
+    if (endDate) {
+      matchesDate = matchesDate && o.date <= endDate;
+    }
+
+    return matchesSearch && matchesCustomer && matchesStatus && matchesDate;
+  });
+
+  const isFilterActive = searchTerm !== '' || filterCustomer !== 'all' || filterStatus !== 'all' || startDate !== '' || endDate !== '';
+
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    setFilterCustomer('all');
+    setFilterStatus('all');
+    setStartDate('');
+    setEndDate('');
+  };
 
   const customerHubOrders = orders.filter(o => 
     hubCustomer && o.custName.toLowerCase() === hubCustomer.name.toLowerCase()
@@ -487,6 +577,15 @@ export const SalesTab: React.FC<SalesTabProps> = ({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={handleOpenInvoiceWithTenRows}
+            className="px-4 py-2 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl font-black text-xs shadow-lg shadow-orange-500/20 transition flex items-center gap-2 cursor-pointer ring-2 ring-amber-300/40"
+            title="Open Invoice Pre-loaded with 10 Medicine Rows"
+          >
+            <Plus className="w-4 h-4 stroke-[3]" />
+            <span>➕ Add 10 Medicine Rows Invoice</span>
+          </button>
+
           <button
             onClick={() => {
               handleLoadCustomerPresets(hubCustomer);
@@ -525,6 +624,58 @@ export const SalesTab: React.FC<SalesTabProps> = ({
             <Plus className="w-4 h-4" />
             <span>Create Customer Invoice</span>
           </button>
+        </div>
+      </div>
+
+      {/* Quick Guide: How to add 10+ medicines for a customer */}
+      <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800/80 p-4 rounded-xl text-amber-950 dark:text-amber-200 text-xs shadow-xs space-y-2">
+        <div className="flex items-center justify-between font-extrabold text-sm">
+          <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300">
+            <Sparkles className="w-4 h-4 text-amber-600" />
+            <span>یک ہی کسٹمر کی 10 (یا زائد) ادویات ایک ساتھ انوائس میں شامل کرنے کا آسان طریقہ:</span>
+          </div>
+          <span className="px-2.5 py-0.5 bg-amber-200 dark:bg-amber-900 text-amber-900 dark:text-amber-100 rounded-full text-[10px] uppercase font-black">
+            Direct 1-Click Action
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1 text-[11px]">
+          <div className="bg-white dark:bg-slate-900 p-2.5 rounded-lg border border-amber-200 dark:border-amber-900 space-y-1">
+            <div className="font-extrabold text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+              <CheckSquare className="w-3.5 h-3.5" />
+              <span>1. Batch Multi-Select Picker (سب سے تیز)</span>
+            </div>
+            <p className="text-slate-600 dark:text-slate-400 mb-2">
+              اوپر <strong>"Batch Multi-Select Picker"</strong> بٹن پر کلک کریں۔ جتنی میڈیسنز چاہیں (10 یا 20) ان پر ٹک لگائیں اور ایک کلک میں کسٹمر کی انوائس میں شامل کر دیں۔
+            </p>
+          </div>
+
+          <div className="bg-white dark:bg-slate-900 p-2.5 rounded-lg border border-amber-200 dark:border-amber-900 space-y-1">
+            <div className="font-extrabold text-sky-600 dark:text-sky-400 flex items-center gap-1">
+              <Plus className="w-3.5 h-3.5" />
+              <span>2. "+ Add Medicine Rows" 10 Rows Direct</span>
+            </div>
+            <p className="text-slate-600 dark:text-slate-400 mb-2">
+              برائے راست 10 ادویات والی انوائس کھولنے کے لیے نیچے بٹن پر کلک کریں:
+            </p>
+            <button
+              onClick={handleOpenInvoiceWithTenRows}
+              className="w-full py-1.5 px-2 bg-amber-500 hover:bg-amber-600 text-white font-extrabold rounded-lg text-xs transition cursor-pointer shadow-xs flex items-center justify-center gap-1"
+            >
+              <Plus className="w-3.5 h-3.5 stroke-[3]" />
+              <span>👉 Click Here: Open Invoice with 10 Rows</span>
+            </button>
+          </div>
+
+          <div className="bg-white dark:bg-slate-900 p-2.5 rounded-lg border border-amber-200 dark:border-amber-900 space-y-1">
+            <div className="font-extrabold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+              <Zap className="w-3.5 h-3.5" />
+              <span>3. Load Customer Presets</span>
+            </div>
+            <p className="text-slate-600 dark:text-slate-400">
+              سبز <strong>"Load Customer Presets"</strong> بٹن پر کلک کریں۔ یہ کسٹمر کے لیے خودکار طریقے سے 6 سے 10 ادویات کی لسٹ انوائس میں لوڈ کر دے گا۔
+            </p>
+          </div>
         </div>
       </div>
 
@@ -799,19 +950,147 @@ export const SalesTab: React.FC<SalesTabProps> = ({
       {/* VIEW 2: ALL SALES INVOICES TABLE */}
       {activeViewMode === 'all_invoices' && (
         <div className="space-y-4">
-          <div className="flex justify-between items-center bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs">
-            <div className="relative w-full max-w-sm">
-              <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search invoices by customer or invoice #..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs"
-              />
+          {/* Multi-Filter Search Control Panel */}
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs space-y-4">
+            {/* Header & Reset Button */}
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-sky-100 dark:bg-sky-950 text-sky-600 dark:text-sky-400 rounded-xl">
+                  <Filter className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="font-black text-slate-900 dark:text-slate-100 text-sm flex items-center gap-2">
+                    <span>Sales Tax Invoices Multi-Filter</span>
+                    {isFilterActive && (
+                      <span className="px-2.5 py-0.5 bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 rounded-full text-[10px] font-black uppercase tracking-wider">
+                        Filter Active
+                      </span>
+                    )}
+                  </h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Filter by date range, customer name, status (Paid/Unpaid), or keyword search.
+                  </p>
+                </div>
+              </div>
+
+              {isFilterActive && (
+                <button
+                  type="button"
+                  onClick={handleClearFilters}
+                  className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Reset All Filters</span>
+                </button>
+              )}
             </div>
-            <div className="text-xs text-slate-500 dark:text-slate-400 font-bold">
-              Total Sales Invoices: <span className="text-slate-900 dark:text-slate-100 font-black">{filteredOrders.length}</span>
+
+            {/* Filter Inputs Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
+              {/* 1. Keyword Search */}
+              <div className="space-y-1 sm:col-span-2 md:col-span-1 lg:col-span-2">
+                <label className="text-[11px] font-extrabold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                  <Search className="w-3 h-3 text-sky-600" />
+                  <span>Keyword / Invoice # Search</span>
+                </label>
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Search invoice #, customer or item..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-9 pr-8 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-sky-500 transition"
+                  />
+                  {searchTerm && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchTerm('')}
+                      className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* 2. Customer Name Filter */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-extrabold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                  <Users className="w-3 h-3 text-indigo-600" />
+                  <span>Filter Customer Name</span>
+                </label>
+                <select
+                  value={filterCustomer}
+                  onChange={(e) => setFilterCustomer(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-sky-500 cursor-pointer"
+                >
+                  <option value="all">All Customers ({customers.length})</option>
+                  {customers.map(c => (
+                    <option key={c.id} value={c.name}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 3. Invoice Status Filter */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-extrabold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                  <span>Invoice Status</span>
+                </label>
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value as 'all' | 'Paid' | 'Unpaid')}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-sky-500 cursor-pointer"
+                >
+                  <option value="all">All Statuses (Paid &amp; Unpaid)</option>
+                  <option value="Paid">🟢 Paid Invoices Only</option>
+                  <option value="Unpaid">🔴 Unpaid / Credit Only</option>
+                </select>
+              </div>
+
+              {/* 4. Date Range Filters */}
+              <div className="space-y-1 sm:col-span-2 md:col-span-1 lg:col-span-1">
+                <label className="text-[11px] font-extrabold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                  <Calendar className="w-3 h-3 text-amber-600" />
+                  <span>Date Range</span>
+                </label>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full px-2 py-1.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-[11px] font-bold text-slate-900 dark:text-slate-100"
+                    title="From Start Date"
+                  />
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-full px-2 py-1.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-[11px] font-bold text-slate-900 dark:text-slate-100"
+                    title="To End Date"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Filter Summary Stats Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800/60 text-xs">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="px-2.5 py-1 bg-sky-50 dark:bg-sky-950 text-sky-800 dark:text-sky-200 rounded-lg font-extrabold text-[11px] border border-sky-200 dark:border-sky-800">
+                  Matching Invoices: <strong>{filteredOrders.length}</strong> of {orders.length}
+                </span>
+                <span className="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-200 rounded-lg font-extrabold text-[11px] border border-emerald-200 dark:border-emerald-800">
+                  Paid: <strong>{filteredOrders.filter(o => o.status === 'Paid').length}</strong>
+                </span>
+                <span className="px-2.5 py-1 bg-rose-50 dark:bg-rose-950 text-rose-800 dark:text-rose-200 rounded-lg font-extrabold text-[11px] border border-rose-200 dark:border-rose-800">
+                  Unpaid: <strong>{filteredOrders.filter(o => o.status !== 'Paid').length}</strong>
+                </span>
+              </div>
+
+              <div className="font-black text-slate-900 dark:text-slate-100 text-xs">
+                Total Filtered Value: <span className="text-sky-600 dark:text-sky-400">{settings.currency} {filteredOrders.reduce((acc, o) => acc + (o.amount || 0), 0).toFixed(2)}</span>
+              </div>
             </div>
           </div>
 
@@ -1033,10 +1312,11 @@ export const SalesTab: React.FC<SalesTabProps> = ({
 
               {/* Line Items Section */}
               <div className="space-y-2 pt-2">
-                <div className="flex justify-between items-center">
+                <div className="flex flex-wrap justify-between items-center gap-2">
                   <div className="flex items-center gap-2">
-                    <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-xs">
-                      Medicine Line Items ({items.length} Medicines)
+                    <h4 className="font-extrabold text-slate-800 dark:text-slate-200 text-xs flex items-center gap-1.5">
+                      <Pill className="w-4 h-4 text-sky-600" />
+                      <span>Medicine Line Items ({items.length} Medicines Added)</span>
                     </h4>
                     {totalFreeBonusUnits > 0 && (
                       <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-extrabold rounded text-[10px]">
@@ -1045,30 +1325,33 @@ export const SalesTab: React.FC<SalesTabProps> = ({
                     )}
                   </div>
 
-                  <div className="flex gap-2">
+                  {/* Multi-Row Add Buttons Header */}
+                  <div className="flex flex-wrap gap-1.5">
                     <button
                       type="button"
-                      onClick={() => {
-                        const initialBatch: Record<string, { selected: boolean; qty: number; bonusQty: number; discount: number }> = {};
-                        inventory.forEach(inv => {
-                          initialBatch[inv.id] = { selected: false, qty: 10, bonusQty: 1, discount: 0 };
-                        });
-                        setSelectedBatchItems(initialBatch);
-                        setShowBatchPickerModal(true);
-                      }}
-                      className="px-3 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-bold flex items-center gap-1"
+                      onClick={() => handleAddMultipleRows(5)}
+                      className="px-2.5 py-1 bg-sky-50 dark:bg-sky-950/50 hover:bg-sky-100 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 rounded-lg text-xs font-bold transition cursor-pointer"
+                      title="Add 5 medicine rows at once"
                     >
-                      <CheckSquare className="w-3.5 h-3.5" />
-                      <span>Multi-Select Picker</span>
+                      + Add 5 Rows
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleAddMultipleRows(10)}
+                      className="px-2.5 py-1 bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800 rounded-lg text-xs font-black transition cursor-pointer"
+                      title="Add 10 medicine rows at once for big pharmacy orders"
+                    >
+                      ⚡ + Add 10 Rows
                     </button>
 
                     <button
                       type="button"
                       onClick={handleAddItem}
-                      className="px-3 py-1 bg-sky-600 text-white hover:bg-sky-700 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer"
+                      className="px-3.5 py-1 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-black flex items-center gap-1.5 shadow-sm transition cursor-pointer ring-2 ring-sky-500/30"
                     >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Add Medicine Row</span>
+                      <Plus className="w-4 h-4 stroke-[3]" />
+                      <span>+ Add Medicine Row</span>
                     </button>
                   </div>
                 </div>
@@ -1102,7 +1385,7 @@ export const SalesTab: React.FC<SalesTabProps> = ({
                               <select
                                 value={item.name}
                                 onChange={(e) => handleItemChange(idx, 'name', e.target.value)}
-                                className="w-full px-2 py-1 border rounded bg-white dark:bg-slate-900 font-bold text-slate-900 dark:text-slate-100 text-xs"
+                                className="w-full px-2 py-1 border rounded bg-white dark:bg-slate-900 font-bold text-slate-900 dark:text-slate-100 text-xs focus:ring-2 focus:ring-sky-500"
                               >
                                 {inventory.map(i => (
                                   <option key={i.id} value={i.name}>
@@ -1191,7 +1474,8 @@ export const SalesTab: React.FC<SalesTabProps> = ({
                               <button
                                 type="button"
                                 onClick={() => handleRemoveItem(idx)}
-                                className="text-rose-500 hover:text-rose-700 p-1"
+                                className="text-rose-500 hover:text-rose-700 p-1 cursor-pointer"
+                                title="Remove row"
                               >
                                 <Trash2 className="w-4 h-4 mx-auto" />
                               </button>
@@ -1201,6 +1485,37 @@ export const SalesTab: React.FC<SalesTabProps> = ({
                       })}
                     </tbody>
                   </table>
+                </div>
+
+                {/* Bottom Row Add Control Bar */}
+                <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
+                  <div className="text-xs text-slate-500 font-medium">
+                    Need more items for this customer order? Currently {items.length} row(s) added.
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleAddMultipleRows(5)}
+                      className="px-3 py-1.5 bg-sky-100 hover:bg-sky-200 text-sky-800 dark:bg-sky-950 dark:text-sky-300 rounded-lg text-xs font-bold transition cursor-pointer"
+                    >
+                      + Add 5 Rows
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleAddMultipleRows(10)}
+                      className="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 dark:bg-amber-950 dark:text-amber-200 rounded-lg text-xs font-black transition cursor-pointer"
+                    >
+                      ⚡ + Add 10 Rows
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleAddItem}
+                      className="px-4 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-black flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>+ Add Medicine Row</span>
+                    </button>
+                  </div>
                 </div>
               </div>
 
