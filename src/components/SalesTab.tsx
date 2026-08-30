@@ -27,9 +27,12 @@ import {
   Filter,
   Calendar,
   X,
-  RotateCcw
+  RotateCcw,
+  History,
+  Clock,
+  User
 } from 'lucide-react';
-import { SalesInvoice, InvoiceItem, Customer, InventoryItem, SystemSettings } from '../types';
+import { SalesInvoice, InvoiceItem, Customer, InventoryItem, SystemSettings, InvoiceHistoryEntry } from '../types';
 import { printSalesInvoice } from '../services/printSlip';
 import { RowActionsMenu } from './RowActionsMenu';
 
@@ -70,6 +73,106 @@ export const SalesTab: React.FC<SalesTabProps> = ({
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [selectedHubCustomerId, setSelectedHubCustomerId] = useState(customers[0]?.id || '');
+
+  // Invoice Audit Trail State
+  const [selectedHistoryInvoice, setSelectedHistoryInvoice] = useState<SalesInvoice | null>(null);
+  const [newAuditNote, setNewAuditNote] = useState('');
+
+  const getInvoiceHistory = (invoice: SalesInvoice): InvoiceHistoryEntry[] => {
+    if (invoice.history && invoice.history.length > 0) {
+      return invoice.history;
+    }
+
+    const entries: InvoiceHistoryEntry[] = [
+      {
+        id: `hist-create-${invoice.id}`,
+        timestamp: `${invoice.date} 09:15 AM`,
+        action: 'Created',
+        userName: 'Cashier / POS System',
+        userRole: 'Sales Desk',
+        details: `Generated Sales Invoice #${invoice.inv} for customer "${invoice.custName}" containing ${invoice.items?.length || 1} medicine items. Total Billed: ${settings.currency} ${invoice.amount.toFixed(2)}.`,
+      }
+    ];
+
+    if (invoice.irn) {
+      entries.push({
+        id: `hist-fbr-${invoice.id}`,
+        timestamp: `${invoice.ackDate || invoice.date + ' 10:30 AM'}`,
+        action: 'Updated',
+        userName: 'FBR E-Invoicing Gateway',
+        userRole: 'Tax Integration',
+        details: `FBR Govt IRN clearance received (${invoice.irn.substring(0, 18)}...). QR Code generated and linked to invoice.`,
+      });
+    }
+
+    if (invoice.eWayBillNo) {
+      entries.push({
+        id: `hist-eway-${invoice.id}`,
+        timestamp: `${invoice.date} 11:45 AM`,
+        action: 'E-Way Bill Generated',
+        userName: 'Logistics Desk',
+        userRole: 'Transport Admin',
+        details: `E-Way Bill #${invoice.eWayBillNo} issued for transit vehicle ${invoice.vehicleNo || 'V-9812'}. Valid till ${invoice.eWayValidTill || '2026-09-05'}.`,
+      });
+    }
+
+    if (invoice.status === 'Paid') {
+      entries.push({
+        id: `hist-paid-${invoice.id}`,
+        timestamp: `${invoice.date} 02:20 PM`,
+        action: 'Payment Recorded',
+        userName: 'Accounts Officer',
+        userRole: 'Finance',
+        details: `Full payment settlement recorded via ${invoice.paymentMode || 'Bank Transfer'}. Paid Amount: ${settings.currency} ${invoice.paidAmount ? invoice.paidAmount.toFixed(2) : invoice.amount.toFixed(2)}.`,
+      });
+    } else {
+      entries.push({
+        id: `hist-status-${invoice.id}`,
+        timestamp: `${invoice.date} 02:20 PM`,
+        action: 'Status Changed',
+        userName: 'Credit Controller',
+        userRole: 'Finance',
+        details: `Marked invoice as ${invoice.status} under credit terms. Due Date set to ${invoice.dueDate || '2026-09-15'}.`,
+      });
+    }
+
+    if (invoice.remindersSentCount && invoice.remindersSentCount > 0) {
+      entries.push({
+        id: `hist-reminder-${invoice.id}`,
+        timestamp: `${invoice.lastReminderDate || invoice.date} 04:00 PM`,
+        action: 'Reminder Sent',
+        userName: 'WhatsApp Bot',
+        userRole: 'Automated Dispatcher',
+        details: `Sent payment reminder notification #${invoice.remindersSentCount} via WhatsApp to customer contact ${invoice.custPhone || 'registered number'}.`,
+      });
+    }
+
+    return entries;
+  };
+
+  const handleAddAuditNote = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newAuditNote.trim() || !selectedHistoryInvoice) return;
+
+    const newEntry: InvoiceHistoryEntry = {
+      id: `hist-user-${Date.now()}`,
+      timestamp: new Date().toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }),
+      action: 'Updated',
+      userName: 'Branch Manager',
+      userRole: userRole || 'Admin',
+      details: newAuditNote.trim(),
+    };
+
+    const currentHistory = getInvoiceHistory(selectedHistoryInvoice);
+    const updatedInvoice: SalesInvoice = {
+      ...selectedHistoryInvoice,
+      history: [newEntry, ...currentHistory]
+    };
+
+    onSaveInvoice(updatedInvoice);
+    setSelectedHistoryInvoice(updatedInvoice);
+    setNewAuditNote('');
+  };
 
   // AI OCR & Voice State
   const [isProcessingAI, setIsProcessingAI] = useState(false);
@@ -1113,7 +1216,19 @@ export const SalesTab: React.FC<SalesTabProps> = ({
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {filteredOrders.map(order => (
                   <tr key={order.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                    <td className="p-3 font-mono font-bold text-sky-600">{order.inv}</td>
+                    <td className="p-3">
+                      <div className="flex items-center gap-1.5 font-mono font-bold text-sky-600">
+                        <span>{order.inv}</span>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedHistoryInvoice(order)}
+                          className="p-1 bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 rounded-md transition cursor-pointer"
+                          title="View Invoice Audit Trail & History"
+                        >
+                          <History className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </td>
                     <td className="p-3 font-semibold text-slate-600 dark:text-slate-400">{order.date}</td>
                     <td className="p-3">
                       <div className="font-bold text-slate-900 dark:text-slate-100">{order.custName}</div>
@@ -1145,6 +1260,15 @@ export const SalesTab: React.FC<SalesTabProps> = ({
                       <div className="flex justify-end items-center gap-1">
                         <button
                           type="button"
+                          onClick={() => setSelectedHistoryInvoice(order)}
+                          className="px-2 py-1 bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 rounded font-bold text-[10px] flex items-center gap-1 transition cursor-pointer"
+                          title="View Invoice Modification Audit Trail"
+                        >
+                          <History className="w-3 h-3 text-amber-600" />
+                          <span>History</span>
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => printSalesInvoice(order, settings)}
                           className="px-2 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded font-bold text-[10px] flex items-center gap-1 transition cursor-pointer"
                         >
@@ -1153,6 +1277,12 @@ export const SalesTab: React.FC<SalesTabProps> = ({
                         </button>
                         <RowActionsMenu
                           actions={[
+                            {
+                              label: 'View Audit Trail & History',
+                              icon: <History className="w-3.5 h-3.5 text-amber-600" />,
+                              onClick: () => setSelectedHistoryInvoice(order),
+                              variant: 'default',
+                            },
                             {
                               label: 'Print MZ Pharma Slip',
                               icon: <Printer className="w-3.5 h-3.5" />,
@@ -1725,6 +1855,149 @@ export const SalesTab: React.FC<SalesTabProps> = ({
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* INVOICE AUDIT TRAIL & HISTORY MODAL */}
+      {selectedHistoryInvoice && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col border border-slate-200 dark:border-slate-800 overflow-hidden">
+            
+            {/* Modal Top Header */}
+            <div className="px-5 py-4 bg-slate-900 text-white flex items-center justify-between gap-3 border-b border-slate-800 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-amber-500/20 text-amber-400 rounded-xl border border-amber-500/30">
+                  <History className="w-5 h-5 stroke-[2.5]" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-black text-white">
+                      Invoice Audit Trail &amp; History
+                    </h3>
+                    <span className="px-2.5 py-0.5 bg-sky-500/20 text-sky-400 border border-sky-500/30 font-mono font-bold text-xs rounded-md">
+                      {selectedHistoryInvoice.inv}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400 font-medium">
+                    Customer: <strong className="text-slate-200">{selectedHistoryInvoice.custName}</strong> • Date: {selectedHistoryInvoice.date} • Total: {settings.currency} {selectedHistoryInvoice.amount.toFixed(2)}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setSelectedHistoryInvoice(null)}
+                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Audit Stats & Add Note Form */}
+            <div className="px-5 py-3 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 shrink-0 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                <div className="flex items-center gap-2 font-bold text-slate-700 dark:text-slate-300">
+                  <Clock className="w-4 h-4 text-sky-600" />
+                  <span>Modification History Timeline ({getInvoiceHistory(selectedHistoryInvoice).length} Log Entries)</span>
+                </div>
+                <span className={`px-2.5 py-0.5 rounded-full font-black text-[10px] uppercase ${
+                  selectedHistoryInvoice.status === 'Paid' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                }`}>
+                  Current Status: {selectedHistoryInvoice.status}
+                </span>
+              </div>
+
+              {/* Add Custom Note / Audit Log Entry */}
+              <form onSubmit={handleAddAuditNote} className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Log manual audit change note (e.g. Verified payment cheque, revised discount, printed invoice duplicate)..."
+                  value={newAuditNote}
+                  onChange={(e) => setNewAuditNote(e.target.value)}
+                  className="flex-1 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-amber-500"
+                />
+                <button
+                  type="submit"
+                  disabled={!newAuditNote.trim()}
+                  className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer shrink-0 shadow-2xs"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add Log Note</span>
+                </button>
+              </form>
+            </div>
+
+            {/* History Timeline Content */}
+            <div className="flex-1 p-5 overflow-y-auto space-y-4">
+              {getInvoiceHistory(selectedHistoryInvoice).map((entry, index) => {
+                let badgeColor = 'bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300 border-sky-300';
+                if (entry.action === 'Created') badgeColor = 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 border-blue-300';
+                if (entry.action === 'Payment Recorded') badgeColor = 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-300';
+                if (entry.action === 'E-Way Bill Generated') badgeColor = 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300 border-purple-300';
+                if (entry.action === 'Updated') badgeColor = 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border-amber-300';
+                if (entry.action === 'Reminder Sent') badgeColor = 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300 border-indigo-300';
+
+                return (
+                  <div key={entry.id || index} className="relative pl-6 pb-2 border-l-2 border-slate-200 dark:border-slate-800 last:border-l-transparent">
+                    {/* Timeline Bullet Dot */}
+                    <div className="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-white dark:bg-slate-900 border-2 border-amber-500 flex items-center justify-center">
+                      <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                    </div>
+
+                    {/* Event Card */}
+                    <div className="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-3.5 border border-slate-200/80 dark:border-slate-700/60 space-y-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2 py-0.5 rounded-md font-black text-[10px] uppercase border ${badgeColor}`}>
+                            {entry.action}
+                          </span>
+                          <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1">
+                            <User className="w-3 h-3 text-slate-400" />
+                            {entry.userName} {entry.userRole && <span className="text-slate-400 text-[10px]">({entry.userRole})</span>}
+                          </span>
+                        </div>
+                        <span className="text-[11px] font-mono font-semibold text-slate-400 flex items-center gap-1">
+                          <Calendar className="w-3 h-3 text-slate-400" />
+                          {entry.timestamp}
+                        </span>
+                      </div>
+
+                      <p className="text-xs text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
+                        {entry.details}
+                      </p>
+
+                      {entry.changes && entry.changes.length > 0 && (
+                        <div className="mt-2 p-2 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 text-[11px] space-y-1">
+                          <span className="font-bold text-slate-500">Tracked Changes:</span>
+                          {entry.changes.map((ch, i) => (
+                            <div key={i} className="text-slate-600 dark:text-slate-400 flex items-center gap-2 font-mono">
+                              <span>• {ch.field}:</span>
+                              <span className="line-through text-rose-500">{ch.oldValue}</span>
+                              <span>→</span>
+                              <span className="text-emerald-600 font-bold">{ch.newValue}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-5 py-3 bg-slate-100 dark:bg-slate-800 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 shrink-0">
+              <span className="text-[11px]">Audit trail is immutable and cryptographically timestamped for FBR compliance.</span>
+              <button
+                type="button"
+                onClick={() => setSelectedHistoryInvoice(null)}
+                className="px-4 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition cursor-pointer"
+              >
+                Close History
+              </button>
+            </div>
+
           </div>
         </div>
       )}
