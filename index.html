@@ -1,0 +1,2627 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Posvibe</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="manifest" href="manifest.json">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class'
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Dark Mode Global Styles */
+    html.dark {
+      color-scheme: dark;
+    }
+    html.dark body {
+      background-color: #0f172a !important;
+      color: #f8fafc !important;
+    }
+    html.dark .bg-white {
+      background-color: #1e293b !important;
+      color: #f8fafc !important;
+    }
+    html.dark .bg-slate-50, 
+    html.dark .bg-slate-100 {
+      background-color: #0f172a !important;
+      color: #f8fafc !important;
+    }
+    html.dark .text-slate-900,
+    html.dark .text-slate-800,
+    html.dark .text-slate-700 {
+      color: #f1f5f9 !important;
+    }
+    html.dark .text-slate-600,
+    html.dark .text-slate-500 {
+      color: #94a3b8 !important;
+    }
+    html.dark .border-slate-200,
+    html.dark .border-slate-100,
+    html.dark .border-slate-300 {
+      border-color: #334155 !important;
+    }
+    html.dark input, 
+    html.dark select, 
+    html.dark textarea {
+      background-color: #0f172a !important;
+      color: #f8fafc !important;
+      border-color: #475569 !important;
+    }
+    html.dark table thead {
+      background-color: #0f172a !important;
+      color: #cbd5e1 !important;
+    }
+    html.dark table tbody tr {
+      border-color: #334155 !important;
+    }
+    html.dark table tbody tr:hover {
+      background-color: #334155 !important;
+    }
+    html.dark #sidebar {
+      background-color: #020617 !important;
+    }
+
+    @media print {
+      @page {
+        size: auto;
+        margin: 8mm;
+      }
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .no-print, nav, aside, #sidebar, #header, #loginScreen {
+        display: none !important;
+      }
+      #printInvoiceModal, #printInvoiceModal.hidden,
+      #printEwaySlipModal, #printEwaySlipModal.hidden {
+        display: block !important;
+        position: static !important;
+        background: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        box-shadow: none !important;
+        border: none !important;
+      }
+      #printInvoiceArea, #printEwaySlipArea {
+        display: block !important;
+        visibility: visible !important;
+        position: static !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        border: none !important;
+        background: white !important;
+      }
+    }
+  </style>
+</head>
+
+<body class="bg-slate-100 font-sans antialiased text-slate-800">
+
+  <!-- Login & Lock Screen (Matched to uploaded design spec) -->
+  <div id="loginScreen" class="fixed inset-0 bg-[#0c1322] z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 sm:p-10 border border-slate-100 text-slate-900 relative">
+      <!-- Circular Red Icon with Posvibe Logo -->
+      <div class="w-16 h-16 rounded-full bg-slate-900 flex items-center justify-center mx-auto mb-4 p-2 shadow-md border-2 border-orange-500/20">
+        <img src="https://zuraizadil32-cyber.github.io/Payvubes/logo.png" alt="Posvibe logo" class="w-full h-full object-contain">
+      </div>
+
+      <!-- Title & Subtitle -->
+      <h1 class="text-2xl font-black text-slate-900 text-center tracking-tight">Posvibe</h1>
+      <p class="text-xs text-slate-500 text-center mt-1 mb-6 font-medium">Sign in with your authorized system credentials</p>
+
+      <form onsubmit="handleLogin(event); return false;" class="space-y-4">
+        <div>
+          <label class="block text-[10.5px] font-extrabold uppercase tracking-wider text-slate-600 mb-1.5">EMAIL ADDRESS</label>
+          <input type="email" id="loginEmail" value="admin@gmail.com" placeholder="Email" class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition placeholder:text-slate-400">
+        </div>
+        <div>
+          <label class="block text-[10.5px] font-extrabold uppercase tracking-wider text-slate-600 mb-1.5">PASSWORD</label>
+          <input type="password" id="loginPassword" value="aefdef" placeholder="••••••••" class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition placeholder:text-slate-400">
+        </div>
+        <div id="loginError" class="hidden text-xs text-rose-600 bg-rose-50 border border-rose-200 p-2.5 rounded-xl text-center font-bold">
+          Invalid credentials. Please verify your email or password.
+        </div>
+        <button type="button" onclick="handleLogin(event)" class="w-full py-3 bg-[#f97316] hover:bg-[#ea580c] text-white font-bold rounded-xl shadow-md transition duration-150 text-sm flex items-center justify-center cursor-pointer">
+          Sign In to Dashboard
+        </button>
+      </form>
+
+      <!-- Restore Backup Control (Auto-fill removed) -->
+      <div class="mt-4 flex items-center justify-between text-xs text-slate-500 pt-3 border-t border-slate-100">
+        <button type="button" onclick="openModal('restoreBackupModal')" class="hover:text-orange-600 font-bold flex items-center gap-1.5 transition text-[11px] text-slate-600 cursor-pointer">
+          <i class="fa-solid fa-arrow-right text-orange-500"></i><span>Restore Backup</span>
+        </button>
+      </div>
+
+      <!-- Footer text as in image -->
+      <div class="text-[11px] text-slate-400 text-center mt-6">
+        Secure Invoicematic &amp; Inventory Management Solution
+      </div>
+    </div>
+  </div>
+
+  <!-- Main ERP Shell -->
+  <div id="appContainer" class="hidden flex h-screen overflow-hidden">
+
+    <!-- Sidebar Navigation -->
+    <aside class="w-64 bg-white text-slate-700 flex flex-col border-r border-slate-200 shadow-sm z-20 shrink-0">
+      <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+        <div onclick="showTab('dashboard')" class="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition" title="Go to Dashboard Overview">
+          <img src="https://zuraizadil32-cyber.github.io/Payvubes/logo.png" alt="Posvibe logo" class="w-9 h-9 rounded-lg object-contain shadow border border-orange-500/30 p-0.5 bg-slate-900">
+          <div>
+            <h2 class="font-extrabold text-slate-900 text-sm tracking-tight">Posvibe</h2>
+            <span class="text-[10px] text-orange-600 font-bold uppercase tracking-wider bg-orange-50 px-2 py-0.5 rounded border border-orange-200" id="userRoleDisplay">Admin</span>
+          </div>
+        </div>
+      </div>
+
+      <nav class="flex-1 overflow-y-auto p-3 space-y-1 text-xs font-semibold">
+        <button onclick="showTab('dashboard')" data-tab="dashboard" class="nav-tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 font-semibold transition">
+          <i class="fa-solid fa-chart-pie w-5 text-orange-500"></i><span>Dashboard Overview</span>
+        </button>
+
+        <!-- Sales Menu -->
+        <button onclick="toggleSideMenu('sales')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-700 hover:bg-orange-50/50 hover:text-orange-600 font-bold transition">
+          <span class="flex items-center space-x-3"><i class="fa-solid fa-file-invoice-dollar w-5 text-orange-500"></i><span>Sales &amp; Invoicing</span></span>
+          <i id="caret-sales" class="fa-solid fa-chevron-right text-[9px] text-slate-400 transition duration-200"></i>
+        </button>
+        <div id="menu-sales" class="hidden pl-4 space-y-1 py-1 border-l-2 border-slate-100 ml-4">
+          <button onclick="showTab('orders')" data-tab="orders" class="nav-tab-btn w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 flex items-center transition"><i class="fa-solid fa-file-invoice text-orange-500 w-4 mr-2"></i>Sales Tax Invoices</button>
+          <button onclick="showTab('quotations')" data-tab="quotations" class="nav-tab-btn w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 flex items-center transition"><i class="fa-solid fa-file-lines text-orange-500 w-4 mr-2"></i>Estimates &amp; Quotations</button>
+          <button onclick="showTab('debitnotes')" data-tab="debitnotes" class="nav-tab-btn w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 flex items-center transition"><i class="fa-solid fa-rotate-left text-rose-500 w-4 mr-2"></i>Sales Returns</button>
+          <button onclick="showTab('reminders')" data-tab="reminders" class="nav-tab-btn w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 flex items-center transition"><i class="fa-brands fa-whatsapp text-emerald-500 w-4 mr-2"></i>WhatsApp Reminders</button>
+        </div>
+
+        <!-- Purchases Menu -->
+        <button onclick="toggleSideMenu('purch')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-700 hover:bg-orange-50/50 hover:text-orange-600 font-bold transition">
+          <span class="flex items-center space-x-3"><i class="fa-solid fa-cart-shopping w-5 text-emerald-500"></i><span>Purchases &amp; Vendors</span></span>
+          <i id="caret-purch" class="fa-solid fa-chevron-right text-[9px] text-slate-400 transition duration-200"></i>
+        </button>
+        <div id="menu-purch" class="hidden pl-4 space-y-1 py-1 border-l-2 border-slate-100 ml-4">
+          <button onclick="showTab('purchaseinvoices')" data-tab="purchaseinvoices" class="nav-tab-btn w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 flex items-center transition"><i class="fa-solid fa-receipt text-emerald-500 w-4 mr-2"></i>Purchase Bills</button>
+          <button onclick="showTab('purchases')" data-tab="purchases" class="nav-tab-btn w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 flex items-center transition"><i class="fa-solid fa-clipboard-list text-emerald-500 w-4 mr-2"></i>Purchase Orders</button>
+          <button onclick="showTab('payouts')" data-tab="payouts" class="nav-tab-btn w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 flex items-center transition"><i class="fa-solid fa-money-bill-transfer text-purple-500 w-4 mr-2"></i>Outgoing Payments</button>
+          <button onclick="showTab('expenses')" data-tab="expenses" class="nav-tab-btn w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 flex items-center transition"><i class="fa-solid fa-wallet text-amber-500 w-4 mr-2"></i>Expense Vouchers</button>
+        </div>
+
+        <!-- Financial & Tax Compliance -->
+        <button onclick="toggleSideMenu('taxmenu')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-700 hover:bg-orange-50/50 hover:text-orange-600 font-bold transition">
+          <span class="flex items-center space-x-3"><i class="fa-solid fa-scale-balanced w-5 text-cyan-500"></i><span>Tax &amp; Compliance</span></span>
+          <i id="caret-taxmenu" class="fa-solid fa-chevron-right text-[9px] text-slate-400 transition duration-200"></i>
+        </button>
+        <div id="menu-taxmenu" class="hidden pl-4 space-y-1 py-1 border-l-2 border-slate-100 ml-4">
+          <button onclick="showTab('gstfiling')" data-tab="gstfiling" class="nav-tab-btn w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 flex items-center transition"><i class="fa-solid fa-cloud-arrow-up text-cyan-500 w-4 mr-2"></i>GST 1-Click Filing</button>
+          <button onclick="showTab('tdstcs')" data-tab="tdstcs" class="nav-tab-btn w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 flex items-center transition"><i class="fa-solid fa-percent text-rose-500 w-4 mr-2"></i>TDS &amp; TCS Ledgers</button>
+          <button onclick="showTab('bankrecon')" data-tab="bankrecon" class="nav-tab-btn w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 flex items-center transition"><i class="fa-solid fa-building-columns text-emerald-500 w-4 mr-2"></i>Bank Reconciliation</button>
+        </div>
+
+        <!-- Stock & Inter-Store Transfers -->
+        <button onclick="toggleSideMenu('stockmenu')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-700 hover:bg-orange-50/50 hover:text-orange-600 font-bold transition">
+          <span class="flex items-center space-x-3"><i class="fa-solid fa-boxes-stacked w-5 text-orange-500"></i><span>Inventory &amp; Stores</span></span>
+          <i id="caret-stockmenu" class="fa-solid fa-chevron-right text-[9px] text-slate-400 transition duration-200"></i>
+        </button>
+        <div id="menu-stockmenu" class="hidden pl-4 space-y-1 py-1 border-l-2 border-slate-100 ml-4">
+          <button onclick="showTab('inventory')" data-tab="inventory" class="nav-tab-btn w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 flex items-center transition"><i class="fa-solid fa-box text-orange-500 w-4 mr-2"></i>Stock Inventory</button>
+          <button onclick="showTab('stocktransfers')" data-tab="stocktransfers" class="nav-tab-btn w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 flex items-center transition"><i class="fa-solid fa-arrow-right-arrow-left text-purple-500 w-4 mr-2"></i>Store Transfers</button>
+          <button onclick="showTab('barcode')" data-tab="barcode" class="nav-tab-btn w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 flex items-center transition"><i class="fa-solid fa-barcode text-cyan-500 w-4 mr-2"></i>Barcode Scanner</button>
+        </div>
+
+        <!-- Parties & Client Portal -->
+        <button onclick="toggleSideMenu('partiesmenu')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-700 hover:bg-orange-50/50 hover:text-orange-600 font-bold transition">
+          <span class="flex items-center space-x-3"><i class="fa-solid fa-users w-5 text-indigo-500"></i><span>Parties &amp; Portal</span></span>
+          <i id="caret-partiesmenu" class="fa-solid fa-chevron-right text-[9px] text-slate-400 transition duration-200"></i>
+        </button>
+        <div id="menu-partiesmenu" class="hidden pl-4 space-y-1 py-1 border-l-2 border-slate-100 ml-4">
+          <button onclick="showTab('customers')" data-tab="customers" class="nav-tab-btn w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 flex items-center transition"><i class="fa-solid fa-store text-blue-500 w-4 mr-2"></i>Customer Directory</button>
+          <button onclick="showTab('suppliers')" data-tab="suppliers" class="nav-tab-btn w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 flex items-center transition"><i class="fa-solid fa-truck-field text-emerald-500 w-4 mr-2"></i>Supplier Directory</button>
+          <button onclick="showTab('clientportal')" data-tab="clientportal" class="nav-tab-btn w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 flex items-center transition"><i class="fa-solid fa-circle-user text-purple-500 w-4 mr-2"></i>Client Portal Access</button>
+        </div>
+
+        <!-- HR & Payroll -->
+        <button onclick="toggleSideMenu('hrmenu')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-700 hover:bg-orange-50/50 hover:text-orange-600 font-bold transition">
+          <span class="flex items-center space-x-3"><i class="fa-solid fa-user-tie w-5 text-emerald-500"></i><span>HR &amp; Payroll</span></span>
+          <i id="caret-hrmenu" class="fa-solid fa-chevron-right text-[9px] text-slate-400 transition duration-200"></i>
+        </button>
+        <div id="menu-hrmenu" class="hidden pl-4 space-y-1 py-1 border-l-2 border-slate-100 ml-4">
+          <button onclick="showTab('attendance')" data-tab="attendance" class="nav-tab-btn w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 flex items-center transition"><i class="fa-solid fa-fingerprint text-emerald-500 w-4 mr-2"></i>Attendance Punch</button>
+          <button onclick="showTab('payroll')" data-tab="payroll" class="nav-tab-btn w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 flex items-center transition"><i class="fa-solid fa-money-check-dollar text-purple-500 w-4 mr-2"></i>Salary &amp; Expense Sync</button>
+        </div>
+
+        <!-- Treasury -->
+        <button onclick="showTab('cashbank')" data-tab="cashbank" class="nav-tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 font-semibold transition">
+          <i class="fa-solid fa-building-columns w-5 text-emerald-500"></i><span>Cash &amp; Bank Treasury</span>
+        </button>
+        <button onclick="showTab('otherincome')" data-tab="otherincome" class="nav-tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 font-semibold transition">
+          <i class="fa-solid fa-sack-dollar w-5 text-amber-500"></i><span>Other Income</span>
+        </button>
+        <button onclick="showTab('patients')" data-tab="patients" class="nav-tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 font-semibold transition">
+          <i class="fa-solid fa-hospital-user w-5 text-orange-500"></i><span>Patient Records</span>
+        </button>
+
+        <div id="reportsNav" class="space-y-1"></div>
+
+        <!-- Grow & Marketing -->
+        <button onclick="toggleSideMenu('grow')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-700 hover:bg-orange-50/50 hover:text-orange-600 font-bold transition">
+          <span class="flex items-center space-x-3"><i class="fa-solid fa-rocket w-5 text-pink-500"></i><span>Grow &amp; Marketing</span></span>
+          <i id="caret-grow" class="fa-solid fa-chevron-right text-[9px] text-slate-400 transition duration-200"></i>
+        </button>
+        <div id="menu-grow" class="hidden pl-4 space-y-1 py-1 border-l-2 border-slate-100 ml-4">
+          <button onclick="showTab('googleprofile')" data-tab="googleprofile" class="nav-tab-btn w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 flex items-center transition"><i class="fa-brands fa-google text-pink-500 w-4 mr-2"></i>Google Profile</button>
+          <button onclick="showTab('marketingtools')" data-tab="marketingtools" class="nav-tab-btn w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 flex items-center transition"><i class="fa-solid fa-bullhorn text-pink-500 w-4 mr-2"></i>Marketing Campaigns</button>
+          <button onclick="showTab('onlinestore')" data-tab="onlinestore" class="nav-tab-btn w-full text-left px-3 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 flex items-center transition"><i class="fa-solid fa-shop text-pink-500 w-4 mr-2"></i>Online Store</button>
+        </div>
+
+        <div class="pt-2 mt-2 border-t border-slate-100"></div>
+
+        <button onclick="showTab('settings')" data-tab="settings" class="nav-tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 font-semibold transition">
+          <i class="fa-solid fa-gear w-5 text-slate-400"></i><span>Business Settings</span>
+        </button>
+        <button onclick="showTab('help')" data-tab="help" class="nav-tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-slate-600 hover:bg-orange-50/60 hover:text-orange-600 font-semibold transition">
+          <i class="fa-solid fa-circle-question w-5 text-orange-500"></i><span>Help &amp; Support</span>
+        </button>
+      </nav>
+
+      <div class="p-3 border-t border-slate-100">
+        <button onclick="logout()" class="w-full flex items-center justify-center space-x-2 px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl font-bold transition text-xs border border-rose-200">
+          <i class="fa-solid fa-right-from-bracket"></i><span>Logout Session</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 flex flex-col overflow-hidden bg-slate-100">
+      <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shadow-sm z-10">
+        <div onclick="showTab('dashboard')" class="flex items-center space-x-2.5 cursor-pointer hover:text-orange-600 transition group" title="Return to Dashboard Overview">
+          <i class="fa-solid fa-house text-slate-400 group-hover:text-orange-500 text-sm transition"></i>
+          <h3 id="currentTabTitle" class="text-base font-extrabold text-slate-800 group-hover:text-orange-600 transition">Dashboard Overview</h3>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button id="themeToggleBtn" onclick="toggleDarkMode()" class="p-2 text-slate-500 hover:text-orange-500 rounded-lg hover:bg-slate-100 transition flex items-center justify-center text-sm font-bold border border-slate-200" title="Switch to Dark Mode">
+            <i id="themeToggleIcon" class="fa-solid fa-moon text-slate-600"></i>
+          </button>
+          <button onclick="exportDatabaseBackup()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-slate-200 rounded-lg font-bold text-xs shadow flex items-center space-x-1">
+            <i class="fa-solid fa-download"></i><span>Export Backup</span>
+          </button>
+          <button onclick="openModal('orderModal')" class="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-bold text-xs shadow transition flex items-center space-x-1.5">
+            <i class="fa-solid fa-plus"></i><span>New Tax Invoice</span>
+          </button>
+        </div>
+      </header>
+
+      <div class="flex-1 overflow-y-auto p-6 space-y-6">
+
+        <!-- Stock & Expiry Banners -->
+        <div id="lowStockBanner" class="hidden bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-xl flex items-center justify-between text-xs font-bold shadow-sm">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-triangle-exclamation text-rose-600 text-base"></i>
+            <span id="lowStockText">Attention: Some items in stock have low quantity!</span>
+          </div>
+        </div>
+
+        <div id="expiryBanner" class="hidden bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-xl flex items-center justify-between text-xs font-bold shadow-sm">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-clock text-amber-600 text-base"></i>
+            <span id="expiryText">Warning: Some items are near expiry!</span>
+          </div>
+        </div>
+
+        <!-- Tab 1: Dashboard -->
+        <div id="tab-dashboard" class="tab-content space-y-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+              <div class="text-xs font-bold uppercase text-slate-400">Total Sales Revenue</div>
+              <div id="stat-dailysales" class="text-2xl font-black text-slate-900 mt-1">Rs 0</div>
+            </div>
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+              <div class="text-xs font-bold uppercase text-slate-400">Inventory Items</div>
+              <div id="stat-stock" class="text-2xl font-black text-slate-900 mt-1">0 Items</div>
+            </div>
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+              <div class="text-xs font-bold uppercase text-slate-400">Active Customers</div>
+              <div id="stat-customers" class="text-2xl font-black text-slate-900 mt-1">0 Clients</div>
+            </div>
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+              <div class="text-xs font-bold uppercase text-slate-400">Total Payouts</div>
+              <div id="stat-payout" class="text-2xl font-black text-rose-600 mt-1">Rs 0</div>
+            </div>
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+              <div class="text-xs font-bold uppercase text-slate-400">Stock &amp; Low Stock</div>
+              <div id="stat-totalItems" class="text-2xl font-black text-slate-900 mt-1">0 Total Items</div>
+              <div id="stat-lowStockCount" class="text-xs font-bold text-rose-600 mt-1 flex items-center gap-1">
+                <i class="fa-solid fa-triangle-exclamation"></i><span>Low Stock: 0 items</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- D3 Monthly Revenue Growth & YoY Performance Comparison Chart -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-800 text-[10px] font-extrabold border border-orange-200">
+                    <i class="fa-solid fa-chart-line mr-1 text-orange-600"></i>D3 Interactive Analytics
+                  </span>
+                  <span class="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold border border-slate-200">
+                    YoY Growth Comparison
+                  </span>
+                </div>
+                <h4 class="text-sm font-black text-slate-900">Monthly Revenue Growth &amp; Performance Comparison</h4>
+                <p class="text-[11px] text-slate-500">D3-based visualization of monthly turnover vs. last year baseline performance metrics.</p>
+              </div>
+              <div class="flex items-center gap-4 text-xs font-bold text-slate-600">
+                <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-orange-500 inline-block shadow-xs"></span>Current Year (2026)</div>
+                <div class="flex items-center gap-1.5"><span class="w-3 h-0.5 bg-slate-500 inline-block border-t-2 border-dashed border-slate-500"></span>Last Year (2025)</div>
+              </div>
+            </div>
+            <div id="d3RevenueChartWrapper" class="w-full relative">
+              <svg id="d3RevenueChartSvg" class="w-full h-64 overflow-visible"></svg>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+              <h4 class="text-sm font-bold text-slate-800 mb-4">Sales Revenue Growth</h4>
+              <div class="h-64"><canvas id="salesChart"></canvas></div>
+            </div>
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+              <h4 class="text-sm font-bold text-slate-800 mb-4">Payment Out Vouchers Breakdown</h4>
+              <div class="h-64"><canvas id="payoutChart"></canvas></div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 gap-6">
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+              <h4 class="text-sm font-bold text-slate-800 mb-4">Financials Overview (Sales vs Purchases)</h4>
+              <div class="h-64"><canvas id="reportsChart"></canvas></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Sales Invoices -->
+        <div id="tab-orders" class="tab-content hidden space-y-4">
+          <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <div>
+              <h4 class="text-sm font-bold text-slate-800">GST Sales Tax Invoices &amp; E-Invoicing</h4>
+              <p class="text-[11px] text-slate-500">Automated IRN generation, E-Way Bill linkage, and WhatsApp invoice dispatch.</p>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="promptRecovery('sales')" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg font-bold text-xs shadow transition"><i class="fa-solid fa-magnifying-glass mr-1"></i>New Recovery</button>
+              <button onclick="openModal('orderModal')" class="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-bold text-xs shadow transition">Create Invoice</button>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <table class="w-full text-xs text-left border-collapse">
+              <thead class="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 font-bold">
+                <tr>
+                  <th class="p-3">Invoice #</th>
+                  <th class="p-3">Date</th>
+                  <th class="p-3">Customer Details</th>
+                  <th class="p-3">Product Info</th>
+                  <th class="p-3">Qty &amp; Rate</th>
+                  <th class="p-3">Tax / TDS / TCS</th>
+                  <th class="p-3">Total (Rs)</th>
+                  <th class="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="ordersTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab: Government E-Way Bill & IRN E-Invoicing Screen -->
+        <div id="tab-ewaybill" class="tab-content hidden space-y-6">
+          <!-- Screen Header -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-2 mb-1">
+                <span class="px-2.5 py-0.5 rounded-full bg-cyan-100 text-cyan-800 text-[10px] font-extrabold border border-cyan-200">
+                  <i class="fa-solid fa-satellite-dish mr-1"></i> FBR / National Tax Transit System
+                </span>
+                <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold border border-emerald-200">
+                  <i class="fa-solid fa-shield-halved mr-1"></i> IRN QR Verified
+                </span>
+              </div>
+              <h3 class="text-base font-black text-slate-900 flex items-center gap-2">
+                <i class="fa-solid fa-truck-fast text-cyan-600"></i>
+                <span>Government E-Way Bill &amp; IRN E-Invoicing Portal</span>
+              </h3>
+              <p class="text-[11px] text-slate-500">Generate electronic consignment bills, verify QR-coded IRN invoices, track transporter vehicles, and print official transit slips.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <button onclick="openModal('ewayModal')" class="px-3.5 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl font-bold text-xs shadow-sm flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-plus"></i>
+                <span>Generate E-Way Bill</span>
+              </button>
+              <button onclick="syncAllIrnVerified()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-cyan-400 border border-cyan-500/30 rounded-xl font-bold text-xs shadow-sm flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-qrcode"></i>
+                <span>Bulk IRN Sync</span>
+              </button>
+              <button onclick="exportDispatchManifest()" class="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-xl font-bold text-xs shadow-sm flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-file-arrow-down"></i>
+                <span>Export Manifest</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Key Metrics Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-cyan-500">
+              <div class="flex items-center justify-between">
+                <div class="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">Total E-Way Bills</div>
+                <div class="w-7 h-7 rounded-lg bg-cyan-50 text-cyan-600 flex items-center justify-center text-xs"><i class="fa-solid fa-receipt"></i></div>
+              </div>
+              <div id="ewbStatTotal" class="text-xl font-black text-slate-900 mt-1">2 Bills</div>
+              <div class="text-[10px] text-cyan-600 font-semibold mt-0.5"><i class="fa-solid fa-circle-check mr-1"></i>All registered with Tax Authority</div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-emerald-500">
+              <div class="flex items-center justify-between">
+                <div class="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">IRN Verified Rate</div>
+                <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs"><i class="fa-solid fa-qrcode"></i></div>
+              </div>
+              <div id="ewbStatIrnRate" class="text-xl font-black text-emerald-600 mt-1">100% Verified</div>
+              <div class="text-[10px] text-emerald-700 font-semibold mt-0.5"><i class="fa-solid fa-lock mr-1"></i>Digital signature certified</div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-purple-500">
+              <div class="flex items-center justify-between">
+                <div class="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">Active In-Transit</div>
+                <div class="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center text-xs"><i class="fa-solid fa-truck"></i></div>
+              </div>
+              <div id="ewbStatInTransit" class="text-xl font-black text-purple-600 mt-1">1 Consignment</div>
+              <div class="text-[10px] text-purple-700 font-semibold mt-0.5"><i class="fa-solid fa-location-dot mr-1"></i>Live vehicle tracking active</div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-amber-500">
+              <div class="flex items-center justify-between">
+                <div class="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">Cargo Value in Transit</div>
+                <div class="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-xs"><i class="fa-solid fa-boxes-stacked"></i></div>
+              </div>
+              <div id="ewbStatCargoVal" class="text-xl font-black text-slate-900 mt-1">Rs 5,930.90</div>
+              <div class="text-[10px] text-amber-700 font-semibold mt-0.5"><i class="fa-solid fa-shield mr-1"></i>Insured &amp; statutory pass</div>
+            </div>
+          </div>
+
+          <!-- Search, Filters & Action Toolbar -->
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="relative w-full sm:w-80">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+              <input type="text" id="ewaySearchInput" oninput="filterEwayTable()" placeholder="Search by EWB #, Invoice, Party, Vehicle..." class="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:border-cyan-500">
+            </div>
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+              <select id="ewayStatusFilter" onchange="filterEwayTable()" class="px-3 py-2 border border-slate-200 rounded-lg text-xs font-bold bg-white text-slate-700">
+                <option value="ALL">All Statuses</option>
+                <option value="In-Transit">In-Transit</option>
+                <option value="Active">Active</option>
+                <option value="Delivered">Delivered</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
+              <button onclick="renderEwayBills()" class="px-3 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-50 transition flex items-center gap-1">
+                <i class="fa-solid fa-arrows-rotate"></i>
+                <span class="hidden md:inline">Refresh</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- E-Way Bills & Consignments Master Table -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="px-5 py-3.5 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-list-check text-cyan-600"></i>
+                <h4 class="font-extrabold text-xs text-slate-800 uppercase tracking-wider">Statutory Consignments &amp; Transit Waybills</h4>
+              </div>
+              <div class="text-[11px] text-slate-500 font-semibold" id="ewayTableCount">Showing 2 Records</div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left border-collapse">
+                <thead class="bg-slate-100/70 text-slate-600 uppercase border-b border-slate-200 font-extrabold text-[10px]">
+                  <tr>
+                    <th class="p-3.5">E-Way Bill # &amp; IRN</th>
+                    <th class="p-3.5">Invoice &amp; Date</th>
+                    <th class="p-3.5">Consignee &amp; Destination</th>
+                    <th class="p-3.5">Transporter &amp; Vehicle</th>
+                    <th class="p-3.5">Cargo Value</th>
+                    <th class="p-3.5">Distance &amp; Validity</th>
+                    <th class="p-3.5">Status</th>
+                    <th class="p-3.5 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="ewayTableBody" class="divide-y divide-slate-100"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Purchase Invoices -->
+        <div id="tab-purchaseinvoices" class="tab-content hidden space-y-4">
+          <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <h4 class="text-sm font-bold text-slate-800">Purchase Invoices Directory</h4>
+            <div class="flex gap-2">
+              <button onclick="promptRecovery('purchase')" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg font-bold text-xs shadow transition"><i class="fa-solid fa-magnifying-glass mr-1"></i>New Recovery</button>
+              <button onclick="openModal('purchaseInvoiceModal')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs shadow transition">Create Purchase Invoice</button>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <table class="w-full text-xs text-left border-collapse">
+              <thead class="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 font-bold">
+                <tr>
+                  <th class="p-3">P.Invoice #</th>
+                  <th class="p-3">Date</th>
+                  <th class="p-3">Supplier Name</th>
+                  <th class="p-3">Item Purchased</th>
+                  <th class="p-3">Qty / Rate</th>
+                  <th class="p-3">Total Amount (Rs)</th>
+                  <th class="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="purchaseInvoicesTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 4: Automated GST Compliance Filing -->
+        <div id="tab-gstfiling" class="tab-content hidden space-y-6">
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <h4 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                <i class="fa-solid fa-cloud-arrow-up text-cyan-600"></i>
+                <span>Automated Government Portal Tax Filing (GSTR-1 &amp; GSTR-3B)</span>
+              </h4>
+              <p class="text-[11px] text-slate-500 mt-0.5">Deep simulated API integration with pre-submission error validation and instant ARN assignment.</p>
+            </div>
+            <button onclick="executeGstFiling('GSTR-1')" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg font-bold text-xs shadow flex items-center gap-1.5">
+              <i class="fa-solid fa-paper-plane"></i><span>One-Click File GSTR-1</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-cyan-500">
+              <div class="text-[10px] font-bold uppercase text-slate-400">Total Taxable Turnover</div>
+              <div id="gstStatTurnover" class="text-xl font-black text-slate-900 mt-1">Rs 0</div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-emerald-500">
+              <div class="text-[10px] font-bold uppercase text-slate-400">Output GST Tax Collected</div>
+              <div id="gstStatTax" class="text-xl font-black text-emerald-600 mt-1">Rs 0</div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-purple-500">
+              <div class="text-[10px] font-bold uppercase text-slate-400">Portal API Status</div>
+              <div class="text-sm font-black text-emerald-600 mt-1">● Connected (Live)</div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center">
+              <h4 class="text-sm font-bold text-slate-800">Historical Tax Return Filing Ledgers</h4>
+              <button onclick="executeGstFiling('GSTR-3B')" class="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded text-xs font-bold">File GSTR-3B</button>
+            </div>
+            <table class="w-full text-xs text-left border-collapse">
+              <thead class="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 font-bold">
+                <tr>
+                  <th class="p-3">Return Type</th>
+                  <th class="p-3">Period</th>
+                  <th class="p-3">Filing Date</th>
+                  <th class="p-3">ARN / Ref</th>
+                  <th class="p-3">Taxable Value</th>
+                  <th class="p-3">Tax Amount</th>
+                  <th class="p-3">Status</th>
+                  <th class="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="gstFilingsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 5: TDS & TCS Management -->
+        <div id="tab-tdstcs" class="tab-content hidden space-y-6">
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <h4 class="text-sm font-extrabold text-slate-900">TDS (Tax Deducted at Source) &amp; TCS (Tax Collected)</h4>
+              <p class="text-[11px] text-slate-500">Sections 194C, 194J, 194Q, Section 153 and TCS Section 206C compliance.</p>
+            </div>
+            <button onclick="openModal('addTdsModal')" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-bold text-xs shadow">
+              <i class="fa-solid fa-plus mr-1"></i> Record TDS Entry
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- TDS Table -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div class="p-3 bg-slate-50 border-b border-slate-200 font-bold text-xs text-slate-800">TDS Deducted on Purchases / Vendors</div>
+              <table class="w-full text-xs text-left">
+                <thead class="bg-slate-100 text-slate-600 font-bold">
+                  <tr>
+                    <th class="p-2">Section</th>
+                    <th class="p-2">Party</th>
+                    <th class="p-2">Txn Amt</th>
+                    <th class="p-2">Rate %</th>
+                    <th class="p-2">TDS (Rs)</th>
+                    <th class="p-2">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="tdsTableBody"></tbody>
+              </table>
+            </div>
+
+            <!-- TCS Table -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div class="p-3 bg-slate-50 border-b border-slate-200 font-bold text-xs text-slate-800">TCS Collected on Sales Invoices</div>
+              <table class="w-full text-xs text-left">
+                <thead class="bg-slate-100 text-slate-600 font-bold">
+                  <tr>
+                    <th class="p-2">Section</th>
+                    <th class="p-2">Customer</th>
+                    <th class="p-2">Sale Amt</th>
+                    <th class="p-2">Rate %</th>
+                    <th class="p-2">TCS (Rs)</th>
+                    <th class="p-2">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="tcsTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 6: Automated Bank Reconciliation -->
+        <div id="tab-bankrecon" class="tab-content hidden space-y-6">
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <h4 class="text-sm font-extrabold text-slate-900">Automated Bank Reconciliation</h4>
+              <p class="text-[11px] text-slate-500">Auto-match downloaded bank statements against ERP cash/bank vouchers.</p>
+            </div>
+            <button onclick="autoReconcileBank()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs shadow flex items-center gap-1.5">
+              <i class="fa-solid fa-wand-magic-sparkles"></i><span>Auto Match &amp; Reconcile</span>
+            </button>
+          </div>
+
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <table class="w-full text-xs text-left border-collapse">
+              <thead class="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 font-bold">
+                <tr>
+                  <th class="p-3">Date</th>
+                  <th class="p-3">Description</th>
+                  <th class="p-3">Ref No</th>
+                  <th class="p-3">Type</th>
+                  <th class="p-3">Amount (Rs)</th>
+                  <th class="p-3">Reconciliation Status</th>
+                  <th class="p-3 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="bankReconTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 7: Inter-Store Stock Transfers -->
+        <div id="tab-stocktransfers" class="tab-content hidden space-y-6">
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <h4 class="text-sm font-extrabold text-slate-900">Inter-Store Stock Transfer Channel</h4>
+              <p class="text-[11px] text-slate-500">Dispatch and receive stock batches between Central HQ and regional retail stores.</p>
+            </div>
+            <button onclick="openModal('stockTransferModal')" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold text-xs shadow">
+              <i class="fa-solid fa-plus mr-1"></i> New Transfer Dispatch
+            </button>
+          </div>
+
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <table class="w-full text-xs text-left border-collapse">
+              <thead class="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 font-bold">
+                <tr>
+                  <th class="p-3">Transfer #</th>
+                  <th class="p-3">Date</th>
+                  <th class="p-3">From Branch</th>
+                  <th class="p-3">To Branch</th>
+                  <th class="p-3">Item &amp; Batch</th>
+                  <th class="p-3">Qty</th>
+                  <th class="p-3">Status</th>
+                  <th class="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="stockTransfersTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 8: HR & Payroll Auto-Sync -->
+        <div id="tab-attendance" class="tab-content hidden space-y-6">
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <h4 class="text-sm font-extrabold text-slate-900">Staff Attendance &amp; Biometric Records</h4>
+              <p class="text-[11px] text-slate-500">Biometric and mobile app selfie punch recording for pharmacy staff.</p>
+            </div>
+            <button onclick="openModal('punchModal')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs shadow">
+              <i class="fa-solid fa-fingerprint mr-1"></i> Record Punch
+            </button>
+          </div>
+
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <table class="w-full text-xs text-left border-collapse">
+              <thead class="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 font-bold">
+                <tr>
+                  <th class="p-3">Date</th>
+                  <th class="p-3">Employee Name</th>
+                  <th class="p-3">Punch In</th>
+                  <th class="p-3">Hours Worked</th>
+                  <th class="p-3">Method</th>
+                  <th class="p-3">Status</th>
+                </tr>
+              </thead>
+              <tbody id="attendanceTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 9: Payroll & Auto Expense Sync -->
+        <div id="tab-payroll" class="tab-content hidden space-y-6">
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <h4 class="text-sm font-extrabold text-slate-900">Staff Monthly Payroll &amp; Expense Auto-Sync</h4>
+              <p class="text-[11px] text-slate-500">One-click salary slip generation and automatic posting to business Expense ledger.</p>
+            </div>
+            <button onclick="openModal('payrollModal')" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold text-xs shadow">
+              <i class="fa-solid fa-money-check mr-1"></i> Generate Payroll
+            </button>
+          </div>
+
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <table class="w-full text-xs text-left border-collapse">
+              <thead class="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 font-bold">
+                <tr>
+                  <th class="p-3">Month / Year</th>
+                  <th class="p-3">Employee</th>
+                  <th class="p-3">Base Salary</th>
+                  <th class="p-3">Net Disbursed</th>
+                  <th class="p-3">Synced to Expense</th>
+                  <th class="p-3">Status</th>
+                  <th class="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="payrollTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 10: Client Self-Service Portal -->
+        <div id="tab-clientportal" class="tab-content hidden space-y-6">
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <h4 class="text-sm font-extrabold text-slate-900">Client Self-Service &amp; Loyalty Portal</h4>
+            <p class="text-[11px] text-slate-500 mb-4">Customers can lookup invoices, view ledger balance, and check reward loyalty points.</p>
+            <div class="flex gap-2 max-w-md">
+              <input type="text" id="portalSearchInput" placeholder="Enter Customer Mobile or NTN..." class="flex-1 px-3 py-2 border rounded-lg text-xs">
+              <button onclick="searchClientPortal()" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold text-xs shadow">Search Account</button>
+            </div>
+            <div id="portalResultArea" class="mt-4"></div>
+          </div>
+        </div>
+
+        <!-- Tab 12: Automated WhatsApp & SMS Reminders -->
+        <div id="tab-reminders" class="tab-content hidden space-y-6">
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <h4 class="text-sm font-extrabold text-slate-900">Automated Payment Reminders &amp; WhatsApp Gateway</h4>
+              <p class="text-[11px] text-slate-500">Automated overdue notice dispatch via WhatsApp Web and SMS API.</p>
+            </div>
+            <button onclick="sendBulkOverdueReminders()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs shadow flex items-center gap-1.5">
+              <i class="fa-brands fa-whatsapp"></i><span>Send Bulk Overdue Reminders</span>
+            </button>
+          </div>
+
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-3 bg-slate-50 border-b border-slate-200 font-bold text-xs text-slate-800">Overdue Unpaid Invoices Requiring Reminders</div>
+            <table class="w-full text-xs text-left">
+              <thead class="bg-slate-100 text-slate-600 font-bold">
+                <tr>
+                  <th class="p-3">Invoice #</th>
+                  <th class="p-3">Customer</th>
+                  <th class="p-3">Phone</th>
+                  <th class="p-3">Due Date</th>
+                  <th class="p-3">Amount Due</th>
+                  <th class="p-3 text-right">Quick Dispatch</th>
+                </tr>
+              </thead>
+              <tbody id="overdueRemindersTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Existing Tabs (Quotations, Debit Notes, Patients, Inventory, Customers, Suppliers, Purchases, Payouts, Expenses, CashBank, OtherIncome, Barcode, Settings, Help, Reports, Grow) -->
+        <div id="tab-quotations" class="tab-content hidden space-y-4">
+          <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <h4 class="text-sm font-bold text-slate-800">Generated Quotations</h4>
+            <button onclick="openModal('quotationModal')" class="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-bold text-xs shadow transition">Create Quotation</button>
+          </div>
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <table class="w-full text-xs text-left border-collapse">
+              <thead class="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 font-bold">
+                <tr>
+                  <th class="p-3">Customer / Shop</th>
+                  <th class="p-3">Product Name</th>
+                  <th class="p-3">Rate</th>
+                  <th class="p-3">Discount Scheme</th>
+                  <th class="p-3">Date</th>
+                  <th class="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="quotationsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="tab-debitnotes" class="tab-content hidden space-y-4">
+          <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <h4 class="text-sm font-bold text-slate-800">Debit Notes &amp; Returns</h4>
+            <button onclick="openModal('debitModal')" class="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-bold text-xs shadow transition">Issue Debit Note</button>
+          </div>
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <table class="w-full text-xs text-left border-collapse">
+              <thead class="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 font-bold">
+                <tr>
+                  <th class="p-3">Debit Note #</th>
+                  <th class="p-3">Party Name</th>
+                  <th class="p-3">Orig Invoice</th>
+                  <th class="p-3">Item &amp; Qty</th>
+                  <th class="p-3">Reason</th>
+                  <th class="p-3">Amount (Rs)</th>
+                  <th class="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="debitTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="tab-patients" class="tab-content hidden space-y-4">
+          <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <h4 class="text-sm font-bold text-slate-800">Patient Records / Clinical Info</h4>
+            <div class="flex items-center gap-2">
+              <button onclick="window.print()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg font-bold text-xs shadow transition flex items-center gap-1"><i class="fa-solid fa-print"></i><span>Print Records</span></button>
+              <button onclick="openModal('patientModal')" class="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-bold text-xs shadow transition">Add Patient</button>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <table class="w-full text-xs text-left border-collapse">
+              <thead class="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 font-bold">
+                <tr>
+                  <th class="p-3">Patient Name / Age</th>
+                  <th class="p-3">Gender / Address</th>
+                  <th class="p-3">Doctor</th>
+                  <th class="p-3">Service</th>
+                  <th class="p-3">Fee &amp; Status</th>
+                  <th class="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="patientsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="tab-inventory" class="tab-content hidden space-y-4">
+          <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <h4 class="text-sm font-bold text-slate-800">Inventory &amp; Stock Management</h4>
+            <button onclick="openModal('itemModal')" class="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-bold text-xs shadow transition">Add Item</button>
+          </div>
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <table class="w-full text-xs text-left border-collapse">
+              <thead class="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 font-bold">
+                <tr>
+                  <th class="p-3">Item Name</th>
+                  <th class="p-3">Batch #</th>
+                  <th class="p-3">Stock</th>
+                  <th class="p-3">Unit</th>
+                  <th class="p-3">Expiry Date</th>
+                  <th class="p-3">Purchase Price</th>
+                  <th class="p-3">Sale Price</th>
+                  <th class="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="inventoryTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="tab-customers" class="tab-content hidden space-y-4">
+          <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <h4 class="text-sm font-bold text-slate-800">Customers / Shops Directory</h4>
+            <button onclick="openModal('customerModal')" class="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-bold text-xs shadow transition">Add Customer</button>
+          </div>
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <table class="w-full text-xs text-left border-collapse">
+              <thead class="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 font-bold">
+                <tr>
+                  <th class="p-3">Shop / Customer</th>
+                  <th class="p-3">Contact &amp; Category</th>
+                  <th class="p-3">Address / Route</th>
+                  <th class="p-3">NTN / CNIC</th>
+                  <th class="p-3">Loyalty Points</th>
+                  <th class="p-3">Credit Balance</th>
+                  <th class="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="customerTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="tab-suppliers" class="tab-content hidden space-y-4">
+          <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <h4 class="text-sm font-bold text-slate-800">Suppliers &amp; Pharma Companies</h4>
+            <button onclick="openModal('supplierModal')" class="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-bold text-xs shadow transition">Add Supplier</button>
+          </div>
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <table class="w-full text-xs text-left border-collapse">
+              <thead class="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 font-bold">
+                <tr>
+                  <th class="p-3">Company Name</th>
+                  <th class="p-3">Contact Details</th>
+                  <th class="p-3">Address</th>
+                  <th class="p-3">NTN / Tax</th>
+                  <th class="p-3">Credit Balance</th>
+                  <th class="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="supplierTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="tab-purchases" class="tab-content hidden space-y-4">
+          <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <h4 class="text-sm font-bold text-slate-800">Purchase Orders</h4>
+            <div class="flex items-center gap-2">
+              <button onclick="window.print()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg font-bold text-xs shadow transition flex items-center gap-1"><i class="fa-solid fa-print"></i><span>Print PO List</span></button>
+              <button onclick="openModal('purchaseModal')" class="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-bold text-xs shadow transition">Create PO</button>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <table class="w-full text-xs text-left border-collapse">
+              <thead class="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 font-bold">
+                <tr>
+                  <th class="p-3">Ref #</th>
+                  <th class="p-3">Supplier</th>
+                  <th class="p-3">Item Name</th>
+                  <th class="p-3">Amount</th>
+                  <th class="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="purchasesTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="tab-payouts" class="tab-content hidden space-y-4">
+          <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <h4 class="text-sm font-bold text-slate-800">Payment Out Vouchers</h4>
+            <button onclick="openModal('payoutModal')" class="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-bold text-xs shadow transition">Create Payout</button>
+          </div>
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <table class="w-full text-xs text-left border-collapse">
+              <thead class="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 font-bold">
+                <tr>
+                  <th class="p-3">Voucher #</th>
+                  <th class="p-3">Recipient</th>
+                  <th class="p-3">Mode</th>
+                  <th class="p-3">Amount</th>
+                  <th class="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="payoutsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="tab-expenses" class="tab-content hidden space-y-4">
+          <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <div>
+              <h4 class="text-sm font-bold text-slate-800">Business Expenses</h4>
+              <p class="text-[11px] text-slate-500">Rent, utilities, salaries (auto-synced), and maintenance.</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="text-right">
+                <div class="text-[10px] uppercase font-bold text-slate-500">Total Expense</div>
+                <div id="stat-expenseTotal" class="text-lg font-black text-rose-600">Rs 0</div>
+              </div>
+              <button onclick="openModal('expenseModal')" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-bold text-xs shadow transition">Add Expense</button>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <table class="w-full text-xs text-left border-collapse">
+              <thead class="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 font-bold">
+                <tr>
+                  <th class="p-3">Voucher #</th>
+                  <th class="p-3">Date</th>
+                  <th class="p-3">Category</th>
+                  <th class="p-3">Description</th>
+                  <th class="p-3">Paid To</th>
+                  <th class="p-3">Mode</th>
+                  <th class="p-3">Amount</th>
+                  <th class="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="expensesTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="tab-cashbank" class="tab-content hidden space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <div class="text-[10px] uppercase font-bold text-slate-500">Cash in Hand</div>
+              <div id="stat-cashBalance" class="text-2xl font-black text-emerald-600 mt-1">Rs 0</div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <div class="text-[10px] uppercase font-bold text-slate-500">Bank Balance</div>
+              <div id="stat-bankBalance" class="text-2xl font-black text-blue-600 mt-1">Rs 0</div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <div class="text-[10px] uppercase font-bold text-slate-500">Total Available</div>
+              <div id="stat-totalBalance" class="text-2xl font-black text-slate-900 mt-1">Rs 0</div>
+            </div>
+          </div>
+          <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <h4 class="text-sm font-bold text-slate-800">Cash &amp; Bank Transactions</h4>
+            <div class="flex items-center gap-2">
+              <button onclick="openModal('cashbankModal')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs shadow transition">New Transaction</button>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <table class="w-full text-xs text-left border-collapse">
+              <thead class="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 font-bold">
+                <tr>
+                  <th class="p-3">Ref #</th>
+                  <th class="p-3">Date</th>
+                  <th class="p-3">Account</th>
+                  <th class="p-3">Type</th>
+                  <th class="p-3">Description</th>
+                  <th class="p-3">Amount</th>
+                  <th class="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="cashbankTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="tab-otherincome" class="tab-content hidden space-y-4">
+          <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <div>
+              <h4 class="text-sm font-bold text-slate-800">Other Income</h4>
+              <p class="text-[11px] text-slate-500">Rent received, commission, scrap sale, rebates or interest.</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="text-right">
+                <div class="text-[10px] uppercase font-bold text-slate-500">Total Other Income</div>
+                <div id="stat-incomeTotal" class="text-lg font-black text-emerald-600">Rs 0</div>
+              </div>
+              <button onclick="openModal('incomeModal')" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-bold text-xs shadow transition">Add Income</button>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <table class="w-full text-xs text-left border-collapse">
+              <thead class="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 font-bold">
+                <tr>
+                  <th class="p-3">Receipt #</th>
+                  <th class="p-3">Date</th>
+                  <th class="p-3">Source</th>
+                  <th class="p-3">Description</th>
+                  <th class="p-3">Received In</th>
+                  <th class="p-3">Amount</th>
+                  <th class="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="incomeTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="tab-barcode" class="tab-content hidden space-y-4">
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <h4 class="text-sm font-bold text-slate-800 mb-1">Barcode Scanner</h4>
+            <p class="text-[11px] text-slate-500 mb-4">Scan item barcode or search batch code to find stock and immediately invoice.</p>
+            <div class="flex gap-2">
+              <input type="text" id="barcodeInput" placeholder="Scan or type barcode / item name..." autocomplete="off" class="flex-1 px-3 py-3 border rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-cyan-500">
+              <button onclick="handleBarcodeScan()" class="px-4 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg font-bold text-xs shadow transition">
+                <i class="fa-solid fa-magnifying-glass mr-1"></i> Find Item
+              </button>
+            </div>
+            <div id="barcodeResult" class="mt-4 text-xs"></div>
+          </div>
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center">
+              <h4 class="text-sm font-bold text-slate-800">Recent Scans</h4>
+              <button onclick="clearScanLog()" class="px-2.5 py-1 border rounded-lg text-[11px] font-bold text-slate-600 hover:bg-slate-100">Clear</button>
+            </div>
+            <table class="w-full text-xs text-left border-collapse">
+              <thead class="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 font-bold">
+                <tr>
+                  <th class="p-3">Time</th>
+                  <th class="p-3">Scanned Code</th>
+                  <th class="p-3">Matched Item</th>
+                  <th class="p-3">Stock</th>
+                  <th class="p-3">Sale Price</th>
+                </tr>
+              </thead>
+              <tbody id="scanTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="tab-settings" class="tab-content hidden space-y-4">
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <h4 class="text-sm font-bold text-slate-800 mb-1">Business Settings &amp; Statutory Info</h4>
+            <p class="text-[11px] text-slate-500 mb-4">Saved details are printed on every GST invoice, voucher, and statutory return.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div class="md:col-span-2">
+                <label class="block font-bold uppercase text-slate-600 mb-1">Company Logo (Printed on Invoices)</label>
+                <div class="flex items-center gap-4">
+                  <img id="setLogoPreview" src="" alt="Logo" class="w-16 h-16 object-contain hidden border rounded-lg bg-slate-50 p-1">
+                  <input type="file" id="setCompanyLogoInput" accept="image/*" class="w-full px-3 py-2 border rounded-lg text-xs" onchange="handleLogoUpload(event)">
+                </div>
+              </div>
+              <div>
+                <label class="block font-bold uppercase text-slate-600 mb-1">Business / Company Name</label>
+                <input type="text" id="setCompany" class="w-full px-3 py-2 border rounded-lg">
+              </div>
+              <div>
+                <label class="block font-bold uppercase text-slate-600 mb-1">Tagline / Business Type</label>
+                <input type="text" id="setTagline" class="w-full px-3 py-2 border rounded-lg">
+              </div>
+              <div class="md:col-span-2">
+                <label class="block font-bold uppercase text-slate-600 mb-1">Business Address</label>
+                <input type="text" id="setAddress" class="w-full px-3 py-2 border rounded-lg">
+              </div>
+              <div>
+                <label class="block font-bold uppercase text-slate-600 mb-1">Phone Number</label>
+                <input type="text" id="setPhone" class="w-full px-3 py-2 border rounded-lg">
+              </div>
+              <div>
+                <label class="block font-bold uppercase text-slate-600 mb-1">Email Address</label>
+                <input type="text" id="setEmail" class="w-full px-3 py-2 border rounded-lg">
+              </div>
+              <div>
+                <label class="block font-bold uppercase text-slate-600 mb-1">NTN Number</label>
+                <input type="text" id="setNtn" class="w-full px-3 py-2 border rounded-lg">
+              </div>
+              <div>
+                <label class="block font-bold uppercase text-slate-600 mb-1">STRN / Sales Tax Reg #</label>
+                <input type="text" id="setStrn" class="w-full px-3 py-2 border rounded-lg">
+              </div>
+              <div>
+                <label class="block font-bold uppercase text-slate-600 mb-1">Currency Symbol</label>
+                <input type="text" id="setCurrency" class="w-full px-3 py-2 border rounded-lg">
+              </div>
+              <div>
+                <label class="block font-bold uppercase text-slate-600 mb-1">Default GST / Tax %</label>
+                <input type="number" id="setTax" class="w-full px-3 py-2 border rounded-lg">
+              </div>
+              <div class="md:col-span-2">
+                <label class="block font-bold uppercase text-slate-600 mb-1">Bank Account Details (printed on invoice)</label>
+                <input type="text" id="setBank" placeholder="Bank name, Title, Account / IBAN" class="w-full px-3 py-2 border rounded-lg">
+              </div>
+              <div class="md:col-span-2">
+                <label class="block font-bold uppercase text-slate-600 mb-1">Invoice Footer / Terms</label>
+                <textarea id="setFooter" rows="2" class="w-full px-3 py-2 border rounded-lg"></textarea>
+              </div>
+            </div>
+            <div class="flex justify-end gap-2 mt-5">
+              <button onclick="saveSettings()" class="px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-bold text-xs shadow">Save Settings</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="tab-help" class="tab-content hidden space-y-4">
+          <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+            <h4 class="text-base font-extrabold text-slate-900">Help &amp; Support</h4>
+            <p class="text-xs text-slate-500 mt-1">Need help with GST invoices, tax returns, or inventory? Support is active 7 days a week.</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-5 text-xs">
+              <a href="tel:+923086707676" class="block p-4 rounded-xl border border-slate-200 hover:border-orange-400 hover:shadow transition">
+                <i class="fa-solid fa-phone text-orange-500 text-lg"></i>
+                <div class="font-bold uppercase text-slate-500 text-[10px] mt-2">Call Helpline</div>
+                <div class="font-black text-slate-900 text-sm mt-1">+92 3086707676</div>
+              </a>
+              <a href="https://wa.me/923086707676" target="_blank" rel="noopener" class="block p-4 rounded-xl border border-slate-200 hover:border-emerald-400 hover:shadow transition">
+                <i class="fa-brands fa-whatsapp text-emerald-500 text-lg"></i>
+                <div class="font-bold uppercase text-slate-500 text-[10px] mt-2">WhatsApp Support</div>
+                <div class="font-black text-slate-900 text-sm mt-1">+92 3086707676</div>
+              </a>
+              <div class="p-4 rounded-xl border border-slate-200">
+                <i class="fa-solid fa-clock text-cyan-500 text-lg"></i>
+                <div class="font-bold uppercase text-slate-500 text-[10px] mt-2">Support Hours</div>
+                <div class="font-black text-slate-900 text-sm mt-1">9:00 AM - 9:00 PM (PKT)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="tab-googleprofile" class="tab-content hidden space-y-4">
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <h3 class="text-sm font-extrabold text-slate-900">Google Profile Manager</h3>
+            <p class="text-[11px] text-slate-500 mt-1">Update Google Business profile info.</p>
+            <div class="grid md:grid-cols-2 gap-3 mt-4">
+              <div><label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Business Name</label><input id="gpName" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs" /></div>
+              <div><label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Category</label><input id="gpCat" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs" /></div>
+            </div>
+            <button onclick="saveGrowSettings()" class="mt-4 px-4 py-2 bg-slate-900 text-white rounded-lg font-bold text-xs">Save Profile</button>
+          </div>
+        </div>
+
+        <div id="tab-marketingtools" class="tab-content hidden space-y-4">
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <h3 class="text-sm font-extrabold text-slate-900">Marketing &amp; WhatsApp Broadcasts</h3>
+            <div class="mt-4"><textarea id="mkMsg" rows="3" class="w-full border rounded-lg p-2 text-xs" placeholder="Special discount offer..."></textarea></div>
+            <div class="flex gap-2 mt-3">
+              <button onclick="shareMarketing('whatsapp')" class="px-4 py-2 bg-emerald-600 text-white rounded-lg font-bold text-xs"><i class="fa-brands fa-whatsapp mr-1"></i> WhatsApp Broadcast</button>
+              <button onclick="shareMarketing('sms')" class="px-4 py-2 bg-cyan-600 text-white rounded-lg font-bold text-xs"><i class="fa-solid fa-comment-sms mr-1"></i> Send SMS</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="tab-onlinestore" class="tab-content hidden space-y-4">
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <h3 class="text-sm font-extrabold text-slate-900">Online Storefront</h3>
+            <div class="grid md:grid-cols-2 gap-3 mt-4">
+              <div><label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Store Name</label><input id="stName" class="w-full border rounded-lg p-2 text-xs" /></div>
+              <div><label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Store Link</label><input id="stLink" class="w-full border rounded-lg p-2 text-xs" /></div>
+            </div>
+            <div id="storeCatalogue" class="mt-5"></div>
+          </div>
+        </div>
+
+        <div id="tab-reports" class="tab-content hidden space-y-4">
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap items-end gap-3 justify-between">
+            <div>
+              <h4 id="reportTitle" class="text-sm font-extrabold text-slate-900">Select a report</h4>
+              <p id="reportSubtitle" class="text-[11px] text-slate-500 mt-0.5">Choose any report from the Reports menu in the sidebar.</p>
+            </div>
+            <div class="flex flex-wrap items-end gap-2">
+              <div><input type="date" id="repFrom" onchange="renderReport()" class="border rounded-lg p-1.5 text-xs"></div>
+              <div><input type="date" id="repTo" onchange="renderReport()" class="border rounded-lg p-1.5 text-xs"></div>
+              <input type="text" id="repSearch" oninput="renderReport()" placeholder="Search..." class="border rounded-lg p-1.5 text-xs">
+              <button onclick="clearReportFilters()" class="px-3 py-1.5 bg-slate-200 rounded-lg text-xs font-bold">Clear</button>
+              <button onclick="printReport()" class="px-3 py-1.5 bg-cyan-600 text-white rounded-lg text-xs font-bold"><i class="fa-solid fa-print mr-1"></i> Print</button>
+            </div>
+          </div>
+          <div id="reportSummary" class="grid grid-cols-1 md:grid-cols-4 gap-4"></div>
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
+            <table class="w-full text-xs" id="reportTable">
+              <thead class="bg-slate-100 text-slate-600 uppercase text-[10px]"><tr id="reportHead"></tr></thead>
+              <tbody id="reportBody" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Modals Container -->
+
+  <!-- Interactive Payment Gateway Modal -->
+  <div id="paymentGatewayModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 space-y-6 shadow-2xl border border-amber-300 my-6 relative overflow-hidden">
+      <!-- Top Gateway Banner -->
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div class="flex items-center space-x-3">
+          <div class="w-12 h-12 bg-amber-500 text-slate-950 rounded-2xl flex items-center justify-center text-xl font-black shadow-sm">
+            <i class="fa-solid fa-lock"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-black uppercase text-amber-600 tracking-wider">Posvibe Gateway</span>
+              <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[9px] font-black rounded-full"><i class="fa-solid fa-bolt mr-1"></i> Auto-Receive</span>
+            </div>
+            <h3 class="text-lg font-black text-slate-900">Annual License Payment Gateway</h3>
+          </div>
+        </div>
+        <button onclick="closeModal('paymentGatewayModal')" class="text-slate-400 hover:text-slate-600 p-2"><i class="fa-solid fa-xmark text-xl"></i></button>
+      </div>
+
+      <!-- Payment Summary & Destination Highlight -->
+      <div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white p-5 rounded-2xl space-y-3 shadow-inner">
+        <div class="flex justify-between items-center text-xs text-slate-300 font-medium">
+          <span>Billing Period: <strong>Annual / 1 Year</strong></span>
+          <span class="px-2.5 py-1 bg-amber-500 text-slate-950 rounded-lg font-black uppercase text-[10px]">One-Time Payment</span>
+        </div>
+        <div class="flex items-baseline justify-between border-t border-slate-700/80 pt-3">
+          <span class="text-xs font-bold text-slate-300 uppercase">Total Subscription Amount</span>
+          <span class="text-3xl font-black text-amber-400">Rs. 50,000</span>
+        </div>
+        <div class="p-3 bg-amber-500/10 border border-amber-400/30 rounded-xl text-xs space-y-1">
+          <div class="text-[10px] font-bold uppercase text-amber-300"><i class="fa-solid fa-paper-plane mr-1"></i> Send Payment Direct To Number / Account:</div>
+          <div class="flex items-center justify-between font-mono">
+            <span class="text-xl font-black text-white">03086707676</span>
+            <button onclick="navigator.clipboard.writeText('03086707676'); alert('Copied 03086707676 to clipboard!');" class="px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded text-[10px] font-extrabold flex items-center gap-1 transition">
+              <i class="fa-solid fa-copy"></i> Copy Number
+            </button>
+          </div>
+          <div class="text-[10px] text-slate-300">Account Title: <strong>Posvibe Enterprise Solutions (JazzCash / EasyPaisa / Raast)</strong></div>
+        </div>
+      </div>
+
+      <!-- Payment Method Selection Tabs -->
+      <div class="space-y-3">
+        <label class="block text-xs font-black uppercase text-slate-700">Select Gateway Channel</label>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-bold">
+          <button type="button" onclick="selectGatewayChannel('jazzcash')" id="gwTab-jazzcash" class="gw-channel-btn p-3 rounded-xl border-2 border-orange-500 bg-orange-50 text-orange-900 flex flex-col items-center justify-center gap-1 text-center shadow-xs">
+            <i class="fa-solid fa-mobile-screen text-orange-600 text-base"></i>
+            <span class="text-[11px] font-extrabold">JazzCash</span>
+          </button>
+          <button type="button" onclick="selectGatewayChannel('easypaisa')" id="gwTab-easypaisa" class="gw-channel-btn p-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-emerald-500 flex flex-col items-center justify-center gap-1 text-center">
+            <i class="fa-solid fa-wallet text-emerald-600 text-base"></i>
+            <span class="text-[11px] font-extrabold">EasyPaisa</span>
+          </button>
+          <button type="button" onclick="selectGatewayChannel('raast')" id="gwTab-raast" class="gw-channel-btn p-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-blue-500 flex flex-col items-center justify-center gap-1 text-center">
+            <i class="fa-solid fa-bolt text-blue-600 text-base"></i>
+            <span class="text-[11px] font-extrabold">Raast ID</span>
+          </button>
+          <button type="button" onclick="selectGatewayChannel('bank')" id="gwTab-bank" class="gw-channel-btn p-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:border-purple-500 flex flex-col items-center justify-center gap-1 text-center">
+            <i class="fa-solid fa-building-columns text-purple-600 text-base"></i>
+            <span class="text-[11px] font-extrabold">Bank Transfer</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Payment Input Fields -->
+      <div id="gwInputFields" class="space-y-4 text-xs">
+        <div>
+          <label id="gwSenderNumLabel" class="block font-extrabold uppercase text-slate-700 mb-1">Your Mobile / Wallet Number (Sender)</label>
+          <input type="text" id="gwSenderNumber" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl font-mono text-sm font-bold text-slate-900 focus:ring-2 focus:ring-orange-500" placeholder="e.g. 03086707676 or your mobile number">
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-extrabold uppercase text-slate-700 mb-1">Account Holder Name</label>
+            <input type="text" id="gwSenderName" class="w-full px-3 py-2 border border-slate-300 rounded-xl font-bold text-slate-900" placeholder="e.g. Muhammad Adil">
+          </div>
+          <div>
+            <label class="block font-extrabold uppercase text-slate-700 mb-1">Annual Amount (Rs)</label>
+            <input type="text" id="gwAmount" class="w-full px-3 py-2 border border-slate-300 rounded-xl font-mono font-bold text-slate-900 bg-slate-100" value="50,000" readonly>
+          </div>
+        </div>
+      </div>
+
+      <!-- Processing State Overlay inside Modal (Initially Hidden) -->
+      <div id="gwProcessingOverlay" class="hidden p-6 bg-slate-900 text-white rounded-2xl text-center space-y-4">
+        <div class="w-16 h-16 border-4 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        <div>
+          <h4 id="gwProcStatusTitle" class="text-base font-black text-amber-400">Connecting to Payment Gateway...</h4>
+          <p id="gwProcStatusDesc" class="text-xs text-slate-300 mt-1">Initiating Rs. 50,000 transfer to 03086707676...</p>
+        </div>
+        <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+          <div id="gwProgressBar" class="bg-amber-400 h-full w-0 transition-all duration-300"></div>
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <div id="gwActionBtnContainer" class="pt-2">
+        <button onclick="processGatewayPayment()" class="w-full py-4 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-2xl font-black text-sm shadow-xl transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-paper-plane text-base"></i>
+          <span>Send Rs 50,000 to 03086707676 &amp; Auto-Receive</span>
+        </button>
+        <div class="text-center text-[10px] text-slate-400 mt-2 font-semibold">
+          <i class="fa-solid fa-shield-halved text-emerald-600 mr-1"></i> Instant automated receipt verification &amp; 1-year license activation
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Trial Expired Warning Modal -->
+  <div id="trialExpiredModal" class="hidden fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-rose-200 text-center">
+      <div class="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto text-2xl">
+        <i class="fa-solid fa-lock"></i>
+      </div>
+      <div>
+        <h3 class="text-lg font-black text-slate-900">30-Day Free Trial Has Expired!</h3>
+        <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+          Your 30-day free trial period for Payvibes Enterprise ERP has completed. Adding new tax invoices, purchase bills, and vouchers is now locked.
+        </p>
+      </div>
+
+      <div class="p-4 bg-amber-50 rounded-xl border border-amber-200 text-left space-y-1">
+        <div class="text-[11px] font-bold uppercase text-amber-800"><i class="fa-solid fa-crown mr-1"></i> Subscribe to Yearly Plan</div>
+        <div class="text-xs text-slate-700 font-semibold">Subscribe for <strong>Rs. 50,000 / year</strong> to unlock unlimited tax invoices, automated GST returns, payroll, and 24/7 support.</div>
+      </div>
+
+      <div class="flex flex-col gap-2 pt-2">
+        <button onclick="closeModal('trialExpiredModal'); openPaymentGateway();" class="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold text-xs shadow-md transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-credit-card"></i><span>Pay Rs 50,000 Now (Send to 03086707676)</span>
+        </button>
+        <button onclick="closeModal('trialExpiredModal')" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl font-bold text-xs transition">
+          Dismiss
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Invoice Modal with Customer Dropdown Selector & Tax/TDS/TCS -->
+  <div id="orderModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 border border-slate-200 my-6">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
+        <h3 class="font-black text-slate-900 text-base flex items-center gap-2">
+          <i class="fa-solid fa-file-invoice text-orange-500"></i>
+          <span>Create GST Sales Tax Invoice &amp; E-Way</span>
+        </h3>
+        <button onclick="closeModal('orderModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <div class="space-y-3.5 text-xs">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold uppercase text-slate-600 mb-1">Invoice Number</label>
+            <input type="text" id="invNum" placeholder="INV-10001" class="w-full px-3 py-2 border rounded-lg bg-slate-50 font-mono font-bold">
+          </div>
+          <div>
+            <label class="block font-bold uppercase text-slate-600 mb-1">Invoice Date</label>
+            <input type="date" id="invDate" class="w-full px-3 py-2 border rounded-lg">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold uppercase text-slate-600 mb-1">Customer / Shop Name *</label>
+            <input type="text" id="invCustName" placeholder="Type or select customer..." class="w-full px-3 py-2 border rounded-lg font-bold" list="dl-invCustName" autocomplete="off">
+            <datalist id="dl-invCustName" data-party="customers"></datalist>
+          </div>
+          <div>
+            <label class="block font-bold uppercase text-slate-600 mb-1">Select from Registered Parties (Drop-down)</label>
+            <select id="invCustomerSelect" onchange="handleSelectExistingCustomer(this.value)" class="w-full px-3 py-2 border rounded-lg bg-slate-50 font-medium text-slate-700">
+              <option value="">-- Choose Existing Customer --</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block font-bold uppercase text-slate-600 mb-1">NTN / CNIC / GSTIN</label>
+            <input type="text" id="invCustNtnCnic" placeholder="35202-1234567-1" class="w-full px-3 py-2 border rounded-lg">
+          </div>
+          <div>
+            <label class="block font-bold uppercase text-slate-600 mb-1">Phone (for WhatsApp)</label>
+            <input type="text" id="invCustPhone" placeholder="0300-1234567" class="w-full px-3 py-2 border rounded-lg">
+          </div>
+          <div>
+            <label class="block font-bold uppercase text-slate-600 mb-1">Province / Place</label>
+            <select id="invCustProvince" class="w-full px-3 py-2 border rounded-lg bg-white">
+              <option value="Punjab">Punjab</option>
+              <option value="Sindh">Sindh</option>
+              <option value="KPK">KPK</option>
+              <option value="Balochistan">Balochistan</option>
+              <option value="Islamabad">Islamabad</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="relative">
+          <label class="block font-bold uppercase text-slate-600 mb-1">Product Name (Search Inventory Catalog) *</label>
+          <input type="text" id="invProdName" placeholder="Type medicine or product name..." autocomplete="off" class="w-full px-3 py-2 border rounded-lg font-bold">
+          <div id="dropdown-invProdName" class="hidden absolute left-0 right-0 bg-white border border-slate-200 rounded-lg shadow-xl max-h-48 overflow-y-auto z-30 mt-1"></div>
+        </div>
+
+        <div class="grid grid-cols-4 gap-3">
+          <div>
+            <label class="block font-bold uppercase text-slate-600 mb-1">HS Code</label>
+            <input type="text" id="invHsCode" value="3004.90" class="w-full px-3 py-2 border rounded-lg font-mono">
+          </div>
+          <div>
+            <label class="block font-bold uppercase text-slate-600 mb-1">UOM</label>
+            <select id="invUom" class="w-full px-3 py-2 border rounded-lg bg-white">
+              <option value="Pcs">Pcs</option>
+              <option value="Boxes">Boxes</option>
+              <option value="Packets">Packets</option>
+              <option value="Bottles">Bottles</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold uppercase text-slate-600 mb-1">Quantity</label>
+            <input type="number" id="invQty" value="1" min="1" class="w-full px-3 py-2 border rounded-lg font-bold text-center">
+          </div>
+          <div>
+            <label class="block font-bold uppercase text-slate-600 mb-1">Rate (Rs)</label>
+            <input type="number" id="invRate" placeholder="0.00" class="w-full px-3 py-2 border rounded-lg font-bold text-right">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block font-bold uppercase text-slate-600 mb-1">GST Tax %</label>
+            <input type="number" id="invTaxPct" value="18" class="w-full px-3 py-2 border rounded-lg">
+          </div>
+          <div>
+            <label class="block font-bold uppercase text-slate-600 mb-1">Discount (Rs)</label>
+            <input type="number" id="invDiscount" value="0" class="w-full px-3 py-2 border rounded-lg">
+          </div>
+          <div>
+            <label class="block font-bold uppercase text-slate-600 mb-1">Apply 0.1% TCS</label>
+            <select id="invApplyTcs" onchange="calculateInvoiceTotal()" class="w-full px-3 py-2 border rounded-lg bg-white">
+              <option value="no">No TCS</option>
+              <option value="yes">Yes (0.1% Sec 206C)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold uppercase text-slate-600 mb-1">Payment Status</label>
+            <select id="invStatus" class="w-full px-3 py-2 border rounded-lg bg-white">
+              <option value="Paid">Paid</option>
+              <option value="Unpaid">Unpaid / Credit</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold uppercase text-slate-600 mb-1">Vehicle / Transporter (for E-Way)</label>
+            <input type="text" id="invVehicle" placeholder="e.g. LHE-8902 / Courier" class="w-full px-3 py-2 border rounded-lg">
+          </div>
+        </div>
+
+        <div class="p-3.5 bg-orange-50 rounded-xl flex items-center justify-between border border-orange-200">
+          <div>
+            <span class="text-xs font-bold text-orange-900">Total Calculated Payable:</span>
+            <span class="block text-[10px] text-orange-700">Includes Tax + TCS - Discount</span>
+          </div>
+          <span id="invTotalDisplay" class="font-black text-xl text-orange-600">Rs 0.00</span>
+        </div>
+
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" onclick="closeModal('orderModal')" class="px-4 py-2 border rounded-lg font-bold text-slate-600 hover:bg-slate-100">Cancel</button>
+          <button type="button" onclick="saveOrder()" class="px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-bold shadow-lg shadow-orange-500/30">Save &amp; Generate IRN</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Customer Modal with Dropdown List of Existing -->
+  <div id="customerModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
+        <h3 class="font-extrabold text-slate-900 text-base">Add Customer / Shop Profile</h3>
+        <button onclick="closeModal('customerModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <div class="space-y-3.5 text-xs">
+        <div class="p-2.5 bg-blue-50 border border-blue-200 rounded-lg">
+          <label class="block font-bold uppercase text-blue-900 text-[10px] mb-1">Existing Customer Template (Drop-down List)</label>
+          <select id="custExistingDropdown" onchange="handleSelectCustomerTemplate(this.value)" class="w-full px-2.5 py-1.5 bg-white border border-blue-300 rounded text-xs">
+            <option value="">-- Or Copy From Existing Customer List --</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-bold uppercase text-slate-600 mb-1">Shop / Pharmacy Name *</label>
+          <input type="text" id="custName" placeholder="Al-Shifa Medical Store" class="w-full px-3 py-2 border rounded-lg font-bold">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold uppercase text-slate-600 mb-1">Owner Name</label>
+            <input type="text" id="custOwner" placeholder="Mr. Ahmed" class="w-full px-3 py-2 border rounded-lg">
+          </div>
+          <div>
+            <label class="block font-bold uppercase text-slate-600 mb-1">Contact Phone</label>
+            <input type="text" id="custContact" placeholder="0300-9876543" class="w-full px-3 py-2 border rounded-lg">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold uppercase text-slate-600 mb-1">Category</label>
+            <select id="custCategory" class="w-full px-3 py-2 border rounded-lg bg-white">
+              <option value="Retailer">Retailer</option>
+              <option value="Wholesaler">Wholesaler</option>
+              <option value="Corporate">Corporate</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold uppercase text-slate-600 mb-1">NTN / CNIC</label>
+            <input type="text" id="custNtnCnic" placeholder="35201-1234567-1" class="w-full px-3 py-2 border rounded-lg font-mono">
+          </div>
+        </div>
+        <div>
+          <label class="block font-bold uppercase text-slate-600 mb-1">Address / Route</label>
+          <input type="text" id="custAddress" placeholder="Main Road, City" class="w-full px-3 py-2 border rounded-lg">
+        </div>
+        <div>
+          <label class="block font-bold uppercase text-slate-600 mb-1">Opening Credit Balance (Rs)</label>
+          <input type="number" id="custCredit" value="0" class="w-full px-3 py-2 border rounded-lg font-bold">
+        </div>
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" onclick="closeModal('customerModal')" class="px-4 py-2 border rounded-lg font-bold text-slate-600 hover:bg-slate-100">Cancel</button>
+          <button type="button" onclick="saveCustomer()" class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-bold shadow">Save Customer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supplier Modal with Dropdown List of Existing -->
+  <div id="supplierModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
+        <h3 class="font-extrabold text-slate-900 text-base">Add Pharma Supplier</h3>
+        <button onclick="closeModal('supplierModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <div class="space-y-3.5 text-xs">
+        <div class="p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg">
+          <label class="block font-bold uppercase text-emerald-900 text-[10px] mb-1">Existing Supplier Template (Drop-down List)</label>
+          <select id="supExistingDropdown" onchange="handleSelectSupplierTemplate(this.value)" class="w-full px-2.5 py-1.5 bg-white border border-emerald-300 rounded text-xs">
+            <option value="">-- Or Select Existing Supplier List --</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-bold uppercase text-slate-600 mb-1">Supplier / Company Name *</label>
+          <input type="text" id="supName" placeholder="Getz Pharma Ltd" class="w-full px-3 py-2 border rounded-lg font-bold">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold uppercase text-slate-600 mb-1">Contact Person</label>
+            <input type="text" id="supContactPerson" placeholder="Mr. Bilal" class="w-full px-3 py-2 border rounded-lg">
+          </div>
+          <div>
+            <label class="block font-bold uppercase text-slate-600 mb-1">Phone Number *</label>
+            <input type="text" id="supContact" placeholder="042-3111222" class="w-full px-3 py-2 border rounded-lg">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold uppercase text-slate-600 mb-1">Email Address</label>
+            <input type="email" id="supEmail" placeholder="info@supplier.com" class="w-full px-3 py-2 border rounded-lg">
+          </div>
+          <div>
+            <label class="block font-bold uppercase text-slate-600 mb-1">NTN / Sales Tax #</label>
+            <input type="text" id="supNtnTax" placeholder="1234567-8" class="w-full px-3 py-2 border rounded-lg font-mono">
+          </div>
+        </div>
+        <div>
+          <label class="block font-bold uppercase text-slate-600 mb-1">Address</label>
+          <input type="text" id="supAddress" placeholder="Industrial Area, Karachi" class="w-full px-3 py-2 border rounded-lg">
+        </div>
+        <div>
+          <label class="block font-bold uppercase text-slate-600 mb-1">Opening Balance (Rs)</label>
+          <input type="number" id="supCredit" value="0" class="w-full px-3 py-2 border rounded-lg font-bold">
+        </div>
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" onclick="closeModal('supplierModal')" class="px-4 py-2 border rounded-lg font-bold text-slate-600 hover:bg-slate-100">Cancel</button>
+          <button type="button" onclick="saveSupplier()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold shadow">Save Supplier</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Restore Database Backup Modal -->
+  <div id="restoreBackupModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[99999] flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 text-slate-100 shadow-2xl">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-800 mb-4">
+        <h3 class="font-extrabold text-cyan-400 text-sm flex items-center gap-2">
+          <i class="fa-solid fa-rotate-left"></i><span>Disaster Recovery: Restore Backup</span>
+        </h3>
+        <button onclick="closeModal('restoreBackupModal')" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p class="text-xs text-slate-300 mb-4">
+        Upload your downloaded <strong>payvibes_backup_*.json</strong> file to recover all invoices, GST filings, inventory batches, and employee records instantly.
+      </p>
+      <div class="border-2 border-dashed border-slate-700 rounded-xl p-6 text-center bg-slate-950/60 cursor-pointer hover:border-cyan-500 transition" onclick="document.getElementById('backupFileInput').click()">
+        <i class="fa-solid fa-cloud-arrow-up text-3xl text-cyan-400 mb-2"></i>
+        <div class="text-xs font-bold text-slate-200">Click to Browse JSON Backup File</div>
+        <input type="file" id="backupFileInput" accept=".json" class="hidden" onchange="handleRestoreBackupFile(event)">
+      </div>
+      <div id="restoreMsg" class="mt-3 text-xs"></div>
+    </div>
+  </div>
+
+  <!-- Other standard modals: purchaseInvoiceModal, quotationModal, patientModal, debitModal, itemModal, purchaseModal, payoutModal, expenseModal, cashbankModal, incomeModal, stockTransferModal, punchModal, payrollModal -->
+  <div id="purchaseInvoiceModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 border border-slate-200">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
+        <h3 class="font-extrabold text-slate-900 text-base">Create Purchase Invoice</h3>
+        <button onclick="closeModal('purchaseInvoiceModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div class="space-y-4 text-xs">
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Purchase Invoice #</label><input type="text" id="pinvNum" class="w-full px-3 py-2 border rounded-lg bg-slate-50 font-bold"></div>
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Date</label><input type="date" id="pinvDate" class="w-full px-3 py-2 border rounded-lg"></div>
+        </div>
+        <div>
+          <label class="block font-bold uppercase text-slate-600 mb-1">Supplier / Pharma Company Name *</label>
+          <input type="text" id="pinvSupplier" placeholder="e.g. Getz Pharma Ltd" class="w-full px-3 py-2 border rounded-lg" list="dl-pinvSupplier" autocomplete="off"><datalist id="dl-pinvSupplier" data-party="suppliers"></datalist>
+        </div>
+        <div class="relative">
+          <label class="block font-bold uppercase text-slate-600 mb-1">Item / Medicine Name *</label>
+          <input type="text" id="pinvItem" placeholder="Search medicine..." autocomplete="off" class="w-full px-3 py-2 border rounded-lg">
+          <div id="dropdown-pinvItem" class="hidden absolute left-0 right-0 bg-white border rounded-lg shadow-xl max-h-48 overflow-y-auto z-30 mt-1"></div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Quantity</label><input type="number" id="pinvQty" value="1" min="1" class="w-full px-3 py-2 border rounded-lg"></div>
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Purchase Rate (Rs)</label><input type="number" id="pinvRate" placeholder="0.00" class="w-full px-3 py-2 border rounded-lg"></div>
+        </div>
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" onclick="closeModal('purchaseInvoiceModal')" class="px-4 py-2 border rounded-lg font-bold text-slate-600">Cancel</button>
+          <button type="button" onclick="savePurchaseInvoice()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg font-bold shadow">Save Purchase Bill</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="quotationModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
+        <h3 class="font-extrabold text-slate-900 text-base">Generate Quotation</h3>
+        <button onclick="closeModal('quotationModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div class="space-y-4 text-xs">
+        <div><label class="block font-bold uppercase text-slate-600 mb-1">Customer Name *</label><input type="text" id="quoCustomer" class="w-full px-3 py-2 border rounded-lg" list="dl-quoCustomer"><datalist id="dl-quoCustomer" data-party="customers"></datalist></div>
+        <div class="relative"><label class="block font-bold uppercase text-slate-600 mb-1">Product Name *</label><input type="text" id="quoProduct" class="w-full px-3 py-2 border rounded-lg"><div id="dropdown-quoProduct" class="hidden absolute left-0 right-0 bg-white border rounded shadow-xl max-h-48 overflow-y-auto z-30 mt-1"></div></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Rate (Rs)</label><input type="number" id="quoRate" class="w-full px-3 py-2 border rounded-lg"></div>
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Discount Scheme</label><input type="text" id="quoDiscount" placeholder="e.g. 5% Trade" class="w-full px-3 py-2 border rounded-lg"></div>
+        </div>
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" onclick="closeModal('quotationModal')" class="px-4 py-2 border rounded-lg font-bold text-slate-600">Cancel</button>
+          <button type="button" onclick="saveQuotation()" class="px-4 py-2 bg-orange-500 text-white rounded-lg font-bold shadow">Save Quotation</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="patientModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
+        <h3 class="font-extrabold text-slate-900 text-base">Add Patient Record</h3>
+        <button onclick="closeModal('patientModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div class="space-y-3.5 text-xs">
+        <div><label class="block font-bold uppercase text-slate-600 mb-1">Patient Name *</label><input type="text" id="patName" class="w-full px-3 py-2 border rounded-lg"></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Age</label><input type="number" id="patAge" placeholder="30" class="w-full px-3 py-2 border rounded-lg"></div>
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Gender</label><select id="patGender" class="w-full px-3 py-2 border rounded-lg"><option>Male</option><option>Female</option></select></div>
+        </div>
+        <div><label class="block font-bold uppercase text-slate-600 mb-1">Home Address</label><input type="text" id="patAddress" placeholder="123 Main St, Lahore" class="w-full px-3 py-2 border rounded-lg"></div>
+        <div><label class="block font-bold uppercase text-slate-600 mb-1">Medical Service</label><input type="text" id="patService" placeholder="Consultation & Checkup" class="w-full px-3 py-2 border rounded-lg"></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Doctor</label><input type="text" id="patDoctor" placeholder="Dr. Ali" class="w-full px-3 py-2 border rounded-lg"></div>
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Fee (Rs)</label><input type="number" id="patFee" placeholder="500" class="w-full px-3 py-2 border rounded-lg"></div>
+        </div>
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" onclick="closeModal('patientModal')" class="px-4 py-2 border rounded-lg font-bold text-slate-600">Cancel</button>
+          <button type="button" onclick="savePatient()" class="px-4 py-2 bg-orange-500 text-white rounded-lg font-bold shadow">Save Patient</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="debitModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
+        <h3 class="font-extrabold text-slate-900 text-base">Issue Return / Debit Note</h3>
+        <button onclick="closeModal('debitModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div class="space-y-3.5 text-xs">
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Party Name</label><input type="text" id="debParty" class="w-full px-3 py-2 border rounded-lg"></div>
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Orig Invoice</label><input type="text" id="debOrigInv" placeholder="INV-1001" class="w-full px-3 py-2 border rounded-lg"></div>
+        </div>
+        <div class="relative"><label class="block font-bold uppercase text-slate-600 mb-1">Item Returned</label><input type="text" id="debItem" class="w-full px-3 py-2 border rounded-lg"><div id="dropdown-debItem" class="hidden absolute left-0 right-0 bg-white border rounded shadow-xl max-h-48 overflow-y-auto z-30 mt-1"></div></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Qty</label><input type="number" id="debQty" value="1" class="w-full px-3 py-2 border rounded-lg"></div>
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Rate (Rs)</label><input type="number" id="debRate" class="w-full px-3 py-2 border rounded-lg"></div>
+        </div>
+        <div><label class="block font-bold uppercase text-slate-600 mb-1">Reason</label><select id="debReason" class="w-full px-3 py-2 border rounded-lg"><option>Damaged Goods</option><option>Near Expiry</option><option>Excess Supply</option></select></div>
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" onclick="closeModal('debitModal')" class="px-4 py-2 border rounded-lg font-bold text-slate-600">Cancel</button>
+          <button type="button" onclick="saveDebitNote()" class="px-4 py-2 bg-orange-500 text-white rounded-lg font-bold shadow">Save Return</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="itemModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
+        <h3 class="font-extrabold text-slate-900 text-base">Add Stock Item</h3>
+        <button onclick="closeModal('itemModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div class="space-y-3.5 text-xs">
+        <div class="relative"><label class="block font-bold uppercase text-slate-600 mb-1">Item Name *</label><input type="text" id="itemName" class="w-full px-3 py-2 border rounded-lg font-bold"><div id="dropdown-itemName" class="hidden absolute left-0 right-0 bg-white border rounded shadow-xl max-h-48 overflow-y-auto z-30 mt-1"></div></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Batch #</label><input type="text" id="itemBatch" placeholder="B-9081" class="w-full px-3 py-2 border rounded-lg"></div>
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Stock Qty</label><input type="number" id="itemStock" value="50" class="w-full px-3 py-2 border rounded-lg font-bold"></div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Unit</label><select id="itemUnit" class="w-full px-3 py-2 border rounded-lg"><option>Boxes</option><option>Pcs</option><option>Bottles</option></select></div>
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Expiry</label><input type="date" id="itemExpiry" class="w-full px-3 py-2 border rounded-lg"></div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Purchase Price</label><input type="number" id="itemPurchasePrice" class="w-full px-3 py-2 border rounded-lg"></div>
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Sale Price</label><input type="number" id="itemSalePrice" class="w-full px-3 py-2 border rounded-lg font-bold"></div>
+        </div>
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" onclick="closeModal('itemModal')" class="px-4 py-2 border rounded-lg font-bold text-slate-600">Cancel</button>
+          <button type="button" onclick="saveItem()" class="px-4 py-2 bg-orange-500 text-white rounded-lg font-bold shadow">Save Item</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="expenseModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
+        <h3 class="font-extrabold text-slate-900 text-base">Record Expense Voucher</h3>
+        <button onclick="closeModal('expenseModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div class="space-y-3.5 text-xs">
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Category</label><select id="expCategory" class="w-full px-3 py-2 border rounded-lg"><option>Rent</option><option>Utilities</option><option>Salaries</option><option>Transport</option><option>Marketing</option><option>Other</option></select></div>
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Payment Mode</label><select id="expMode" class="w-full px-3 py-2 border rounded-lg"><option>Bank</option><option>Cash</option><option>Cheque</option></select></div>
+        </div>
+        <div><label class="block font-bold uppercase text-slate-600 mb-1">Paid To</label><input type="text" id="expPaidTo" placeholder="Vendor / Landlord / Staff" class="w-full px-3 py-2 border rounded-lg"></div>
+        <div><label class="block font-bold uppercase text-slate-600 mb-1">Description</label><input type="text" id="expDesc" placeholder="Details" class="w-full px-3 py-2 border rounded-lg"></div>
+        <div><label class="block font-bold uppercase text-slate-600 mb-1">Amount (Rs) *</label><input type="number" id="expAmount" class="w-full px-3 py-2 border rounded-lg font-bold"></div>
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" onclick="closeModal('expenseModal')" class="px-4 py-2 border rounded-lg font-bold text-slate-600">Cancel</button>
+          <button type="button" onclick="saveExpense()" class="px-4 py-2 bg-rose-600 text-white rounded-lg font-bold shadow">Save Expense</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="cashbankModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
+        <h3 class="font-extrabold text-slate-900 text-base">Cash / Bank Entry</h3>
+        <button onclick="closeModal('cashbankModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div class="space-y-3.5 text-xs">
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Account</label><select id="cbAccount" class="w-full px-3 py-2 border rounded-lg"><option>Bank Account</option><option>Cash in Hand</option></select></div>
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Type</label><select id="cbType" class="w-full px-3 py-2 border rounded-lg"><option value="Deposit / In">Deposit / In</option><option value="Withdraw / Out">Withdraw / Out</option></select></div>
+        </div>
+        <div><label class="block font-bold uppercase text-slate-600 mb-1">Description</label><input type="text" id="cbDesc" class="w-full px-3 py-2 border rounded-lg"></div>
+        <div><label class="block font-bold uppercase text-slate-600 mb-1">Amount (Rs) *</label><input type="number" id="cbAmount" class="w-full px-3 py-2 border rounded-lg font-bold"></div>
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" onclick="closeModal('cashbankModal')" class="px-4 py-2 border rounded-lg font-bold text-slate-600">Cancel</button>
+          <button type="button" onclick="saveCashBank()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg font-bold shadow">Save Entry</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="stockTransferModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
+        <h3 class="font-extrabold text-slate-900 text-base flex items-center gap-2">
+          <i class="fa-solid fa-arrow-right-arrow-left text-purple-600"></i>
+          <span>Inter-Store Stock Transfer</span>
+        </h3>
+        <button onclick="closeModal('stockTransferModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="space-y-3.5 text-xs">
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">From Branch</label><select id="trfFrom" class="w-full px-3 py-2 border rounded-lg font-bold"><option value="Central HQ">Central HQ</option><option value="Lahore Hub">Lahore Hub</option></select></div>
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">To Destination</label><select id="trfTo" class="w-full px-3 py-2 border rounded-lg font-bold"><option value="Karachi Mega Center">Karachi Mega Center</option><option value="Islamabad Federal">Islamabad Federal</option><option value="Lahore Hub">Lahore Hub</option></select></div>
+        </div>
+        <div>
+          <label class="block font-bold uppercase text-slate-600 mb-1">Select Item to Transfer</label>
+          <select id="trfItemSelect" class="w-full px-3 py-2 border rounded-lg font-bold"></select>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Quantity</label><input type="number" id="trfQty" value="10" min="1" class="w-full px-3 py-2 border rounded-lg font-bold"></div>
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Vehicle / Driver</label><input type="text" id="trfDriver" placeholder="Driver Tariq" class="w-full px-3 py-2 border rounded-lg"></div>
+        </div>
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" onclick="closeModal('stockTransferModal')" class="px-4 py-2 border rounded-lg font-bold text-slate-600">Cancel</button>
+          <button type="button" onclick="saveStockTransfer()" class="px-4 py-2 bg-purple-600 text-white rounded-lg font-bold shadow">Dispatch Stock</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="purchaseModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
+        <h3 class="font-extrabold text-slate-900 text-base">Create Purchase Order (PO)</h3>
+        <button onclick="closeModal('purchaseModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div class="space-y-3.5 text-xs">
+        <div><label class="block font-bold uppercase text-slate-600 mb-1">Supplier *</label><input type="text" id="poSupplier" placeholder="Getz Pharma Ltd" class="w-full px-3 py-2 border rounded-lg font-bold" list="dl-pinvSupplier"></div>
+        <div><label class="block font-bold uppercase text-slate-600 mb-1">Item Name *</label><input type="text" id="poItem" placeholder="Medicine / Item" class="w-full px-3 py-2 border rounded-lg"></div>
+        <div><label class="block font-bold uppercase text-slate-600 mb-1">Total Amount (Rs) *</label><input type="number" id="poAmount" class="w-full px-3 py-2 border rounded-lg font-bold"></div>
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" onclick="closeModal('purchaseModal')" class="px-4 py-2 border rounded-lg font-bold text-slate-600">Cancel</button>
+          <button type="button" onclick="savePurchase()" class="px-4 py-2 bg-orange-500 text-white rounded-lg font-bold shadow">Save PO</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="payoutModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
+        <h3 class="font-extrabold text-slate-900 text-base">Payment Out Voucher</h3>
+        <button onclick="closeModal('payoutModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div class="space-y-3.5 text-xs">
+        <div><label class="block font-bold uppercase text-slate-600 mb-1">Recipient / Supplier *</label><input type="text" id="payRecipient" placeholder="Vendor / Supplier Name" class="w-full px-3 py-2 border rounded-lg font-bold" list="dl-pinvSupplier"></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Payment Mode</label><select id="payMode" class="w-full px-3 py-2 border rounded-lg"><option>Bank Transfer</option><option>Cash</option><option>Cheque</option></select></div>
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Amount (Rs) *</label><input type="number" id="payAmount" class="w-full px-3 py-2 border rounded-lg font-bold"></div>
+        </div>
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" onclick="closeModal('payoutModal')" class="px-4 py-2 border rounded-lg font-bold text-slate-600">Cancel</button>
+          <button type="button" onclick="savePayout()" class="px-4 py-2 bg-orange-500 text-white rounded-lg font-bold shadow">Save Payout</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="incomeModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
+        <h3 class="font-extrabold text-slate-900 text-base">Record Other Income</h3>
+        <button onclick="closeModal('incomeModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div class="space-y-3.5 text-xs">
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Income Source</label><select id="incSource" class="w-full px-3 py-2 border rounded-lg"><option>Commission</option><option>Rent Received</option><option>Rebate / Discount</option><option>Scrap Sale</option><option>Other</option></select></div>
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Deposit Account</label><select id="incAccount" class="w-full px-3 py-2 border rounded-lg"><option>Bank Account</option><option>Cash in Hand</option></select></div>
+        </div>
+        <div><label class="block font-bold uppercase text-slate-600 mb-1">Description</label><input type="text" id="incDesc" placeholder="e.g. Pharma Company Quarterly Rebate" class="w-full px-3 py-2 border rounded-lg"></div>
+        <div><label class="block font-bold uppercase text-slate-600 mb-1">Amount (Rs) *</label><input type="number" id="incAmount" class="w-full px-3 py-2 border rounded-lg font-bold"></div>
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" onclick="closeModal('incomeModal')" class="px-4 py-2 border rounded-lg font-bold text-slate-600">Cancel</button>
+          <button type="button" onclick="saveIncome()" class="px-4 py-2 bg-amber-500 text-white rounded-lg font-bold shadow">Save Income</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="punchModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
+        <h3 class="font-extrabold text-slate-900 text-base flex items-center gap-2">
+          <i class="fa-solid fa-fingerprint text-emerald-600"></i>
+          <span>Record Staff Attendance Punch</span>
+        </h3>
+        <button onclick="closeModal('punchModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="space-y-3.5 text-xs">
+        <div>
+          <label class="block font-bold uppercase text-slate-600 mb-1">Employee *</label>
+          <select id="punchEmployee" class="w-full px-3 py-2 border rounded-lg font-bold bg-white">
+            <option value="Bilal Ahmad">Bilal Ahmad (Store Pharmacist)</option>
+            <option value="Zainab Bibi">Zainab Bibi (Head Accountant)</option>
+            <option value="Muhammad Asif">Muhammad Asif (Inventory Clerk)</option>
+          </select>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Punch In Time</label><input type="text" id="punchTime" value="09:00 AM" class="w-full px-3 py-2 border rounded-lg"></div>
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Hours Worked</label><input type="number" id="punchHours" value="8" step="0.5" class="w-full px-3 py-2 border rounded-lg font-bold"></div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Method</label><select id="punchMethod" class="w-full px-3 py-2 border rounded-lg"><option>Biometric Scanner</option><option>Mobile App Selfie</option><option>RFID Card</option></select></div>
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Status</label><select id="punchStatus" class="w-full px-3 py-2 border rounded-lg"><option>Present</option><option>Late</option><option>Half Day</option></select></div>
+        </div>
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" onclick="closeModal('punchModal')" class="px-4 py-2 border rounded-lg font-bold text-slate-600">Cancel</button>
+          <button type="button" onclick="savePunch()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg font-bold shadow">Record Punch</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="payrollModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
+        <h3 class="font-extrabold text-slate-900 text-base flex items-center gap-2">
+          <i class="fa-solid fa-money-check text-purple-600"></i>
+          <span>Staff Monthly Payroll &amp; Expense Sync</span>
+        </h3>
+        <button onclick="closeModal('payrollModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="space-y-3.5 text-xs">
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Month</label><select id="payMonth" class="w-full px-3 py-2 border rounded-lg"><option>August</option><option>July</option><option>September</option></select></div>
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Year</label><input type="number" id="payYear" value="2026" class="w-full px-3 py-2 border rounded-lg font-bold"></div>
+        </div>
+        <div>
+          <label class="block font-bold uppercase text-slate-600 mb-1">Employee *</label>
+          <select id="payrollEmployee" class="w-full px-3 py-2 border rounded-lg font-bold bg-white">
+            <option value="Bilal Ahmad" data-salary="55000">Bilal Ahmad (Salary: Rs 55,000)</option>
+            <option value="Zainab Bibi" data-salary="70000">Zainab Bibi (Salary: Rs 70,000)</option>
+          </select>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Base Salary (Rs)</label><input type="number" id="payrollBase" value="55000" class="w-full px-3 py-2 border rounded-lg font-bold"></div>
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Net Payable (Rs)</label><input type="number" id="payrollNet" value="55000" class="w-full px-3 py-2 border rounded-lg font-bold text-purple-700"></div>
+        </div>
+        <div class="p-3 bg-purple-50 rounded-lg text-purple-900 text-[11px] border border-purple-200">
+          <i class="fa-solid fa-circle-check text-purple-600 mr-1"></i>
+          <span>Auto-Sync: Approving this payroll entry will automatically create an Expense Voucher in General Ledger.</span>
+        </div>
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" onclick="closeModal('payrollModal')" class="px-4 py-2 border rounded-lg font-bold text-slate-600">Cancel</button>
+          <button type="button" onclick="savePayroll()" class="px-4 py-2 bg-purple-600 text-white rounded-lg font-bold shadow">Disburse &amp; Sync Expense</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="addTdsModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
+        <h3 class="font-extrabold text-slate-900 text-base">Record TDS / Withholding Tax Entry</h3>
+        <button onclick="closeModal('addTdsModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div class="space-y-3.5 text-xs">
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Statutory Section</label><select id="tdsSection" class="w-full px-3 py-2 border rounded-lg"><option>Section 153 / 194Q (Goods)</option><option>Section 152 / 194J (Services)</option><option>Section 149 / 192 (Salaries)</option></select></div>
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Party Type</label><select id="tdsPartyType" class="w-full px-3 py-2 border rounded-lg"><option>Vendor</option><option>Contractor</option><option>Employee</option></select></div>
+        </div>
+        <div><label class="block font-bold uppercase text-slate-600 mb-1">Party / Vendor Name *</label><input type="text" id="tdsPartyName" placeholder="e.g. Getz Pharma Ltd" class="w-full px-3 py-2 border rounded-lg font-bold"></div>
+        <div class="grid grid-cols-3 gap-3">
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">Gross Bill (Rs)</label><input type="number" id="tdsGross" placeholder="25000" class="w-full px-3 py-2 border rounded-lg font-bold"></div>
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">TDS Rate %</label><input type="number" id="tdsRate" value="2" class="w-full px-3 py-2 border rounded-lg"></div>
+          <div><label class="block font-bold uppercase text-slate-600 mb-1">TDS Amount</label><input type="number" id="tdsAmount" placeholder="500" class="w-full px-3 py-2 border rounded-lg font-bold text-rose-600"></div>
+        </div>
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" onclick="closeModal('addTdsModal')" class="px-4 py-2 border rounded-lg font-bold text-slate-600">Cancel</button>
+          <button type="button" onclick="saveTdsEntry()" class="px-4 py-2 bg-rose-600 text-white rounded-lg font-bold shadow">Save TDS Entry</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- E-Way Bill Consignment Generator Modal -->
+  <div id="ewayModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 border border-slate-200">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
+        <h3 class="font-extrabold text-slate-900 text-base flex items-center gap-2">
+          <i class="fa-solid fa-truck-fast text-cyan-600"></i>
+          <span id="ewayModalTitle">Generate Statutory E-Way Bill</span>
+        </h3>
+        <button onclick="closeModal('ewayModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="space-y-3.5 text-xs">
+        <div>
+          <label class="block font-bold uppercase text-slate-600 mb-1">Select Sales Tax Invoice *</label>
+          <select id="ewayInvoiceSelect" onchange="handleEwayInvoiceChange(this.value)" class="w-full px-3 py-2 border rounded-lg font-bold bg-white"></select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold uppercase text-slate-600 mb-1">Supply Sub-Type</label>
+            <select id="ewaySupplyType" class="w-full px-3 py-2 border rounded-lg">
+              <option value="Outward Supply">Outward Supply (Sale)</option>
+              <option value="Inter-Store Transfer">Inter-Branch Dispatch</option>
+              <option value="Line Sale">Line Sale / Van Delivery</option>
+              <option value="Export">Export Consignment</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold uppercase text-slate-600 mb-1">Transport Mode</label>
+            <select id="ewayMode" class="w-full px-3 py-2 border rounded-lg font-bold">
+              <option value="Road">Road Transit (Truck/Van)</option>
+              <option value="Rail">Rail Freight</option>
+              <option value="Air">Air Cargo</option>
+              <option value="Ship">Sea Cargo</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold uppercase text-slate-600 mb-1">Transporter / Courier *</label>
+            <input type="text" id="ewayTransporter" placeholder="TCS / Leopard / M&amp;P" class="w-full px-3 py-2 border rounded-lg font-semibold">
+          </div>
+          <div>
+            <label class="block font-bold uppercase text-slate-600 mb-1">Vehicle Number *</label>
+            <input type="text" id="ewayVehicle" placeholder="e.g. LHE-9012" class="w-full px-3 py-2 border rounded-lg font-mono font-bold uppercase">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold uppercase text-slate-600 mb-1">Transporter ID / NTN</label>
+            <input type="text" id="ewayTransporterId" placeholder="TRANS-9901" class="w-full px-3 py-2 border rounded-lg font-mono">
+          </div>
+          <div>
+            <label class="block font-bold uppercase text-slate-600 mb-1">Approx Distance (KM) *</label>
+            <input type="number" id="ewayDistance" placeholder="45" value="45" class="w-full px-3 py-2 border rounded-lg font-bold">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold uppercase text-slate-600 mb-1">Destination Address / Consignee Hub</label>
+          <input type="text" id="ewayDestination" placeholder="Shop Address or Logistics Warehouse" class="w-full px-3 py-2 border rounded-lg">
+        </div>
+
+        <div class="p-3 bg-cyan-50 rounded-xl text-cyan-900 text-[11px] border border-cyan-200">
+          <i class="fa-solid fa-qrcode text-cyan-600 mr-1"></i>
+          <span>Auto-Integration: Validates IRN QR Code &amp; creates valid government transit permit with 48h validity.</span>
+        </div>
+
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" onclick="closeModal('ewayModal')" class="px-4 py-2 border rounded-lg font-bold text-slate-600">Cancel</button>
+          <button type="button" onclick="saveEwayBill()" class="px-4 py-2 bg-cyan-600 text-white rounded-lg font-bold shadow flex items-center gap-1.5">
+            <i class="fa-solid fa-check"></i>
+            <span id="ewaySubmitBtnText">Generate E-Way Bill</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Official Government E-Way Bill Slip Print Modal -->
+  <div id="printEwaySlipModal" class="hidden fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 overflow-y-auto p-2 sm:p-4 flex items-center justify-center">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full overflow-hidden border border-slate-300 my-auto">
+      <div class="no-print bg-slate-900 px-6 py-3.5 flex items-center justify-between border-b border-slate-800 text-white">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-truck-fast text-cyan-400"></i>
+          <span class="font-bold text-sm">Official E-Way Bill Transit Permit Slip</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="printDocument('printEwaySlipArea')" class="px-4 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg font-bold text-xs shadow-md flex items-center gap-1.5 transition cursor-pointer">
+            <i class="fa-solid fa-print"></i><span>Print Waybill</span>
+          </button>
+          <button onclick="downloadDocumentCopy('printEwaySlipArea', 'EWayBill_Transit_Permit.html')" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg font-bold text-xs flex items-center gap-1.5 transition cursor-pointer" title="Save offline copy if printer is not connected">
+            <i class="fa-solid fa-download text-cyan-400"></i><span>Save Copy</span>
+          </button>
+          <button onclick="closeModal('printEwaySlipModal')" class="text-slate-400 hover:text-white text-lg ml-1">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Printable E-Way Bill Sheet -->
+      <div id="printEwaySlipArea" class="p-8 sm:p-10 bg-white text-black font-sans text-[11px] leading-relaxed relative">
+        <!-- Official Tax Watermark -->
+        <div class="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none select-none">
+          <i class="fa-solid fa-shield-halved text-9xl"></i>
+        </div>
+
+        <!-- Slip Header -->
+        <div class="border-b-2 border-slate-900 pb-3 mb-4 text-center">
+          <div class="font-black text-sm uppercase tracking-widest text-slate-800">GOVERNMENT STATUTORY TRANSIT PERMIT</div>
+          <div class="text-xl font-black text-cyan-800 uppercase tracking-tight">E-WAY BILL CONSIGNMENT SLIP</div>
+          <div class="text-[9px] text-slate-500 font-semibold mt-0.5">National E-Invoicing &amp; Cargo Transit System | Part-A &amp; Part-B Certified</div>
+        </div>
+
+        <!-- Barcode & EWB Info Banner -->
+        <div class="grid grid-cols-2 gap-4 p-3 bg-slate-50 border border-slate-300 rounded-lg mb-4">
+          <div>
+            <div class="text-[10px] text-slate-500 font-bold uppercase">E-Way Bill Number</div>
+            <div id="prEwbNo" class="text-base font-black font-mono text-cyan-900">EWB-89012390123</div>
+            <div class="font-mono text-[9px] text-slate-500 tracking-widest mt-1">||| | ||||| || |||| || ||| ||||| |||</div>
+          </div>
+          <div class="text-right">
+            <div class="text-[10px] text-slate-500 font-bold uppercase">Generated Date &amp; Validity</div>
+            <div id="prEwbDates" class="font-bold text-slate-800">18-Aug-2026 to 22-Aug-2026</div>
+            <div class="text-[10px] text-emerald-700 font-extrabold mt-1">● VALID FOR TRANSIT</div>
+          </div>
+        </div>
+
+        <!-- PART-A Details -->
+        <div class="mb-4">
+          <div class="bg-slate-800 text-white font-extrabold text-[10px] px-3 py-1 uppercase tracking-wider rounded-t">
+            PART - A : CONSIGNOR, CONSIGNEE &amp; INVOICE PARTICULARS
+          </div>
+          <div class="border border-slate-300 border-t-0 p-3 grid grid-cols-2 gap-4 text-[10.5px]">
+            <div>
+              <div class="font-bold text-slate-600 text-[10px] uppercase">FROM (Consignor / Supplier):</div>
+              <div class="font-black text-slate-900" id="prEwbFromName">Posvibe Pharma &amp; General Store</div>
+              <div class="text-slate-600" id="prEwbFromAddress">Main Commercial Plaza, Lahore, Pakistan</div>
+              <div class="font-mono text-slate-700">NTN: <span id="prEwbFromNtn">NTN-7890123-4</span></div>
+            </div>
+            <div>
+              <div class="font-bold text-slate-600 text-[10px] uppercase">TO (Consignee / Recipient):</div>
+              <div class="font-black text-slate-900" id="prEwbToName">Al-Madina Medical Complex</div>
+              <div class="text-slate-600" id="prEwbToAddress">Shop # 12, Hospital Road, Lahore</div>
+              <div class="font-mono text-slate-700">NTN / CNIC: <span id="prEwbToNtn">35202-1234567-1</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Document & Goods Summary Table -->
+        <table class="w-full text-[10px] border border-slate-300 mb-4 border-collapse">
+          <thead class="bg-slate-100 font-bold text-slate-700">
+            <tr>
+              <th class="border border-slate-300 p-2 text-left">Doc Type &amp; No.</th>
+              <th class="border border-slate-300 p-2 text-left">Item Description</th>
+              <th class="border border-slate-300 p-2 text-left">HSN / SAC</th>
+              <th class="border border-slate-300 p-2 text-right">Taxable Value</th>
+              <th class="border border-slate-300 p-2 text-right">GST Rate</th>
+              <th class="border border-slate-300 p-2 text-right">Total Cargo Amt</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="border border-slate-300 p-2 font-mono font-bold" id="prEwbInvRef">Tax Invoice INV-1001</td>
+              <td class="border border-slate-300 p-2 font-semibold" id="prEwbItemSummary">Augmentin Tablet 625mg (10 Boxes)</td>
+              <td class="border border-slate-300 p-2 font-mono" id="prEwbHsn">3004.90</td>
+              <td class="border border-slate-300 p-2 text-right font-semibold" id="prEwbTaxable">Rs 3,400.00</td>
+              <td class="border border-slate-300 p-2 text-right" id="prEwbGst">18%</td>
+              <td class="border border-slate-300 p-2 text-right font-black text-slate-900" id="prEwbTotal">Rs 3,915.90</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- PART-B Details -->
+        <div class="mb-4">
+          <div class="bg-slate-800 text-white font-extrabold text-[10px] px-3 py-1 uppercase tracking-wider rounded-t">
+            PART - B : VEHICLE &amp; TRANSPORTER PARTICULARS
+          </div>
+          <div class="border border-slate-300 border-t-0 p-3 grid grid-cols-3 gap-3 text-[10.5px]">
+            <div>
+              <div class="font-bold text-slate-500 text-[10px] uppercase">Mode &amp; Distance</div>
+              <div class="font-extrabold text-slate-900" id="prEwbMode">Road Transit (45 KM)</div>
+            </div>
+            <div>
+              <div class="font-bold text-slate-500 text-[10px] uppercase">Vehicle Reg. Number</div>
+              <div class="font-black font-mono text-cyan-900" id="prEwbVehicle">LHE-9012</div>
+            </div>
+            <div>
+              <div class="font-bold text-slate-500 text-[10px] uppercase">Transporter ID &amp; Name</div>
+              <div class="font-extrabold text-slate-900" id="prEwbTransporter">TCS Express (TRANS-9901)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- IRN QR Authentication Code -->
+        <div class="p-3 bg-slate-50 border border-slate-300 rounded-lg flex items-center justify-between">
+          <div>
+            <div class="text-[9px] font-bold uppercase text-slate-500">Government IRN Hash</div>
+            <div id="prEwbIrnHash" class="font-mono text-[9px] text-slate-700 break-all font-semibold">IRN-90812938129031-FBR-TAX-VERIFIED</div>
+            <div class="text-[8.5px] text-slate-500 mt-1">This consignment is digitally authenticated. Verified at Highway Checkpoints via Mobile QR Scanner.</div>
+          </div>
+          <div class="w-16 h-16 bg-white border border-slate-300 p-1 flex items-center justify-center rounded shadow-inner ml-4 shrink-0">
+            <i class="fa-solid fa-qrcode text-4xl text-slate-900"></i>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center pt-4 border-t border-slate-300 mt-4 text-[9px] text-slate-500">
+          <div>Generated by Posvibe Invoicematic ERP | Certified Electronic Transport Document</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Consignment Transit Tracker Modal -->
+  <div id="ewayTrackingModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 border border-slate-200">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
+        <h3 class="font-extrabold text-slate-900 text-base flex items-center gap-2">
+          <i class="fa-solid fa-map-location-dot text-cyan-600"></i>
+          <span>Live Consignment Transit Tracking</span>
+        </h3>
+        <button onclick="closeModal('ewayTrackingModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+          <div>
+            <div class="text-[10px] font-bold text-slate-400 uppercase">Waybill &amp; Vehicle</div>
+            <div id="trackEwbNo" class="font-black text-sm text-cyan-900">EWB-89012390123</div>
+            <div id="trackVehicle" class="font-mono text-slate-600 text-[11px]">Vehicle: LHE-9012 (TCS Logistics)</div>
+          </div>
+          <span id="trackStatusBadge" class="px-2.5 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-800">In-Transit</span>
+        </div>
+
+        <!-- Timeline Steps -->
+        <div class="relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-cyan-200">
+          <div class="relative">
+            <div class="absolute -left-6 top-0.5 w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[9px] shadow"><i class="fa-solid fa-check"></i></div>
+            <div class="font-bold text-slate-900">1. Consignment Created &amp; IRN Registered</div>
+            <div class="text-[11px] text-slate-500">Invoice certified and government E-Way Bill issued.</div>
+          </div>
+
+          <div class="relative">
+            <div class="absolute -left-6 top-0.5 w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[9px] shadow"><i class="fa-solid fa-check"></i></div>
+            <div class="font-bold text-slate-900">2. Dispatched from Origin Hub</div>
+            <div class="text-[11px] text-slate-500">Loaded onto carrier vehicle at Central HQ Warehouse.</div>
+          </div>
+
+          <div class="relative">
+            <div class="absolute -left-6 top-0.5 w-4 h-4 rounded-full bg-cyan-600 text-white flex items-center justify-center text-[9px] shadow animate-pulse"><i class="fa-solid fa-truck-fast"></i></div>
+            <div class="font-bold text-cyan-700">3. In-Transit via Highway Corridor</div>
+            <div class="text-[11px] text-slate-600" id="trackCheckpointText">Passed Toll Plaza Checkpoint. Estimated delivery within 4 hours.</div>
+          </div>
+
+          <div class="relative">
+            <div class="absolute -left-6 top-0.5 w-4 h-4 rounded-full bg-slate-200 text-slate-400 flex items-center justify-center text-[9px]"><i class="fa-solid fa-box"></i></div>
+            <div class="font-bold text-slate-400">4. Delivery &amp; Customer Acknowledgement</div>
+            <div class="text-[11px] text-slate-400">Destination handover pending receipt signature.</div>
+          </div>
+        </div>
+
+        <div class="flex justify-end pt-2">
+          <button type="button" onclick="closeModal('ewayTrackingModal')" class="px-4 py-2 bg-slate-800 text-white rounded-lg font-bold shadow text-xs">Close Tracker</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Printable Professional Invoice Modal (Exact Match to Design Spec in images.jpg) -->
+  <div id="printInvoiceModal" class="hidden fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 overflow-y-auto p-2 sm:p-4 flex items-center justify-center">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full overflow-hidden border border-slate-300 my-auto">
+      <!-- Modal Top Action Bar (Hidden on actual print) -->
+      <div class="no-print bg-slate-900 px-6 py-3.5 flex items-center justify-between border-b border-slate-800 text-white">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-print text-orange-500"></i>
+          <span class="font-bold text-sm">Official Posvibe &amp; Export Preview</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="printDocument('printInvoiceArea')" class="px-4 py-1.5 bg-orange-600 hover:bg-orange-500 text-white rounded-lg font-bold text-xs shadow-md flex items-center gap-1.5 transition cursor-pointer">
+            <i class="fa-solid fa-print"></i><span>Print Document</span>
+          </button>
+          <button onclick="downloadDocumentCopy('printInvoiceArea', 'Invoice_Print_Copy.html')" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg font-bold text-xs flex items-center gap-1.5 transition cursor-pointer" title="Save offline copy if printer is not connected">
+            <i class="fa-solid fa-download text-orange-400"></i><span>Save Copy</span>
+          </button>
+          <button onclick="closeModal('printInvoiceModal')" class="text-slate-400 hover:text-white text-lg ml-1">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Printable Invoice Sheet Container -->
+      <div id="printInvoiceArea" class="p-8 sm:p-12 bg-white text-black font-sans text-[11px] leading-relaxed relative">
+        <!-- Subtle Background Watermark -->
+        <div class="absolute inset-0 flex items-center justify-center opacity-[0.035] pointer-events-none select-none">
+          <img src="https://zuraizadil32-cyber.github.io/Payvubes/logo.png" alt="watermark" class="w-96 h-96 object-contain">
+        </div>
+
+        <!-- Document Header Bar with Blue Accent Line -->
+        <div class="flex justify-between items-end pb-2 border-b-2 border-sky-500 mb-6">
+          <div class="flex-1">
+            <h1 id="prDocType" class="text-2xl font-black text-sky-600 uppercase tracking-wider">PROFORMA INVOICE</h1>
+          </div>
+          <div class="flex-1 flex justify-center pb-2">
+            <img id="prCompanyLogo" src="" alt="Company Logo" class="w-20 h-20 object-contain hidden">
+          </div>
+          <div class="flex-1 flex items-center justify-end gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-white font-black text-xs shadow-sm overflow-hidden p-0.5">
+              <img src="https://zuraizadil32-cyber.github.io/Payvubes/logo.png" alt="Posvibe Logo" class="w-full h-full object-contain">
+            </div>
+            <span class="text-2xl font-black text-red-600 tracking-tight font-sans">Posvibe</span>
+          </div>
+        </div>
+
+        <!-- 2-Column Info Grid (Company Details & Party Details) -->
+        <div class="grid grid-cols-2 gap-8 mb-6">
+          <!-- Left Column -->
+          <div class="space-y-4">
+            <div>
+              <div id="prCompanyName" class="font-extrabold text-xs text-slate-900 uppercase tracking-wide">POSVIBE PHARMA &amp; GENERAL STORE</div>
+              <div class="text-[10px] space-y-0.5 text-slate-700 mt-1">
+                <div><span class="font-bold">ADDRESS : </span><span id="prCompanyAddress">Main Commercial Plaza, Ferozepur Road</span></div>
+                <div><span class="font-bold">STREET ADDRESS : </span><span id="prCompanyStreet">Shop # 12, Ground Floor</span></div>
+                <div><span class="font-bold">CITY, DIST : </span><span id="prCompanyCity">Lahore, Punjab</span></div>
+                <div><span class="font-bold">STATE, PINCODE : </span><span id="prCompanyState">Punjab, 54000</span></div>
+                <div><span class="font-bold">PHONE NO : </span><span id="prCompanyPhone">+92 3086707676</span></div>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-200">
+              <div class="font-extrabold text-[11px] uppercase text-slate-900 mb-1">PROFORMA INVOICE DETAILS</div>
+              <div class="text-[10px] space-y-0.5 text-slate-700">
+                <div><span class="font-bold">INVOICE NO : </span><span id="prInvNo" class="font-bold font-mono text-slate-900">INV-1001</span></div>
+                <div><span class="font-bold">DATE : </span><span id="prInvDate">2026-08-18</span></div>
+                <div><span class="font-bold">TRANSPORTATION NAME : </span><span id="prTransName">TCS Logistics Express</span></div>
+                <div><span class="font-bold">VEHICLE NAME : </span><span id="prVehicleNo">LHE-8921</span></div>
+                <div><span class="font-bold">DRIVER NAME : </span><span id="prDriverName">Tariq Mehmood</span></div>
+                <div><span class="font-bold">DRIVER PHONE NO : </span><span id="prDriverPhone">0300-9876543</span></div>
+                <div><span class="font-bold">E-WAY BILL NO : </span><span id="prEwayNo" class="font-mono text-slate-800">EWB-89012390123</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column -->
+          <div class="space-y-4">
+            <div>
+              <div class="font-extrabold text-[11px] uppercase text-slate-900 mb-1">PARTY DETAIL'S</div>
+              <div class="text-[10px] space-y-0.5 text-slate-700">
+                <div><span class="font-bold">CUSTOMER'S NAME : </span><span id="prCustName" class="font-bold text-slate-900">Al-Madina Medical Complex</span></div>
+                <div><span class="font-bold">STREET ADDRESS : </span><span id="prCustStreet">Hospital Road Market</span></div>
+                <div><span class="font-bold">CITY, DIST : </span><span id="prCustCity">Lahore</span></div>
+                <div><span class="font-bold">STATE, PINCODE : </span><span id="prCustState">Punjab</span></div>
+                <div><span class="font-bold">PHONE NO : </span><span id="prCustPhone">0300-4567890</span></div>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-200">
+              <div class="font-extrabold text-[11px] uppercase text-slate-900 mb-1">SHIPPING DETAILS</div>
+              <div class="text-[10px] space-y-0.5 text-slate-700">
+                <div><span class="font-bold">STREET ADDRESS : </span><span id="prShipStreet">Shop # 12, Hospital Road</span></div>
+                <div><span class="font-bold">CITY, DIST : </span><span id="prShipCity">Lahore</span></div>
+                <div><span class="font-bold">STATE, PINCODE : </span><span id="prShipState">Punjab</span></div>
+                <div><span class="font-bold">PHONE NO : </span><span id="prShipPhone">0300-4567890</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Items Table with Solid Black Borders -->
+        <div class="mb-4 overflow-hidden border border-slate-900">
+          <table class="w-full text-[10px] border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-900 font-bold uppercase text-slate-900">
+                <th class="border-r border-slate-900 p-2 text-left">ITEMS</th>
+                <th class="border-r border-slate-900 p-2 text-center w-16">QUANTITY</th>
+                <th class="border-r border-slate-900 p-2 text-center w-14">UNIT</th>
+                <th class="border-r border-slate-900 p-2 text-right w-24">PRICE/UNIT</th>
+                <th class="border-r border-slate-900 p-2 text-center w-20">GST RATE (%)</th>
+                <th class="border-r border-slate-900 p-2 text-right w-24">GST AMOUNT (Rs)</th>
+                <th class="p-2 text-right w-28">TOTAL AMOUNT</th>
+              </tr>
+            </thead>
+            <tbody id="prItemsBody">
+              <!-- Rendered via openPrintInvoice() -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Summary Section (Quantity, Words, Totals Breakdown) -->
+        <div class="grid grid-cols-2 gap-4 mb-6">
+          <div class="space-y-3">
+            <div><span class="font-bold">TOTAL QUANTITY : </span><span id="prTotalQty" class="font-bold">10</span></div>
+            <div class="pt-2">
+              <span class="font-bold block text-slate-700 mb-0.5">AMOUNT IN WORDS :</span>
+              <span id="prAmountWords" class="font-extrabold uppercase text-slate-900 text-[10px] leading-tight block">THREE THOUSAND NINE HUNDRED AND SIXTEEN RUPEES ONLY</span>
+            </div>
+          </div>
+
+          <div class="space-y-1 text-right text-[11px]">
+            <div class="flex justify-between"><span class="font-bold text-slate-600">SUB TOTAL</span><span id="prSubTotal" class="font-semibold">Rs 3,400.00</span></div>
+            <div class="flex justify-between"><span class="font-bold text-slate-600">DISCOUNT</span><span id="prDiscount">Rs 100.00</span></div>
+            <div class="flex justify-between"><span class="font-bold text-slate-600">SHIPPING / TCS</span><span id="prShippingTcs">Rs 3.90</span></div>
+            <div class="flex justify-between pt-1.5 border-t-2 border-slate-900 text-sm font-black text-slate-900">
+              <span>GRAND TOTAL</span>
+              <span id="prGrandTotal" class="text-base font-black">Rs 3,915.90</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Terms & Conditions and Signature Boxes -->
+        <div class="grid grid-cols-2 gap-4 mb-6">
+          <div class="border border-slate-900 p-3 min-h-[90px]">
+            <div class="font-bold text-[10px] uppercase mb-1">TERMS &amp; CONDITIONS :</div>
+            <div id="prTermsText" class="text-[9px] text-slate-600 leading-tight">
+              1. Goods once sold will not be returned without original computer-generated invoice.<br>
+              2. Payment due strictly within 7 business days.<br>
+              3. Subject to local court jurisdiction.
+            </div>
+          </div>
+
+          <div class="border border-slate-900 p-3 min-h-[90px] flex flex-col justify-between text-right">
+            <div class="font-bold text-[10px] uppercase text-left">SEAL &amp; SIGNATURE :</div>
+            <div class="text-[9px] text-slate-500 font-semibold pt-6">Authorized Signatory</div>
+          </div>
+        </div>
+
+        <!-- Footer Section (Disclaimer & Powered By) -->
+        <div class="text-center pt-2 border-t border-slate-800 space-y-1">
+          <div class="italic font-bold text-[10px] text-slate-800">Thanks for doing business with us. Please visit us again !!!</div>
+          <div class="text-[8px] text-slate-500">DISCLAIMER : This is a computer generated invoice. The amount shown is digitally calculated</div>
+          <div class="flex justify-end items-center gap-1.5 text-[10px] font-bold text-slate-700 pt-2">
+            <span class="text-slate-400">Powered by</span>
+            <div class="w-3.5 h-3.5 rounded bg-slate-900 p-0.5 flex items-center justify-center">
+              <img src="https://zuraizadil32-cyber.github.io/Payvubes/logo.png" alt="logo" class="w-full h-full object-contain">
+            </div>
+            <span class="font-extrabold text-red-600">Posvibe</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Printable Patient Clinical Receipt Modal -->
+  <div id="printPatientModal" class="hidden fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 overflow-y-auto p-2 sm:p-4 flex items-center justify-center">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden border border-slate-300 my-auto">
+      <div class="no-print bg-slate-900 px-6 py-3.5 flex items-center justify-between border-b border-slate-800 text-white">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-hospital-user text-orange-500"></i>
+          <span class="font-bold text-sm">Patient Clinical Receipt Preview</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="printDocument('printPatientSlipArea')" class="px-4 py-1.5 bg-orange-600 hover:bg-orange-500 text-white rounded-lg font-bold text-xs shadow-md flex items-center gap-1.5 transition cursor-pointer">
+            <i class="fa-solid fa-print"></i><span>Print Slip</span>
+          </button>
+          <button onclick="closeModal('printPatientModal')" class="text-slate-400 hover:text-white text-lg ml-1">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+
+      <div id="printPatientSlipArea" class="p-8 sm:p-10 bg-white text-slate-900 font-sans text-xs leading-relaxed relative">
+        <!-- Clinic Header -->
+        <div class="flex justify-between items-center pb-4 border-b-2 border-orange-500 mb-6">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <div class="w-7 h-7 rounded bg-slate-900 p-0.5 flex items-center justify-center">
+                <img src="https://zuraizadil32-cyber.github.io/Payvubes/logo.png" alt="logo" class="w-full h-full object-contain">
+              </div>
+              <h2 class="text-xl font-black text-slate-900 tracking-tight" id="prPatClinicName">Posvibe Pharma & Clinical Care</h2>
+            </div>
+            <p class="text-[11px] text-slate-500" id="prPatClinicSub">OPD Medical & Clinical Consultation Receipt</p>
+          </div>
+          <div class="text-right">
+            <span class="px-3 py-1 bg-orange-100 text-orange-700 font-extrabold text-xs rounded-full uppercase tracking-wider">Patient Receipt</span>
+            <div class="text-[11px] text-slate-500 mt-1">Date: <strong id="prPatDate">2026-08-23</strong></div>
+          </div>
+        </div>
+
+        <!-- Patient Details Grid -->
+        <div class="bg-slate-50 rounded-xl p-5 border border-slate-200 space-y-3 mb-6">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <span class="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Patient Name</span>
+              <span class="text-sm font-extrabold text-slate-900" id="prPatName">-</span>
+            </div>
+            <div>
+              <span class="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Patient Age</span>
+              <span class="text-sm font-bold text-slate-800" id="prPatAge">-</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4 pt-2.5 border-t border-slate-200">
+            <div>
+              <span class="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Patient Gender</span>
+              <span class="text-xs font-bold text-slate-800" id="prPatGender">-</span>
+            </div>
+            <div>
+              <span class="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Patient Home Address</span>
+              <span class="text-xs font-semibold text-slate-800" id="prPatAddress">-</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4 pt-2.5 border-t border-slate-200">
+            <div>
+              <span class="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Doctor Who Checked</span>
+              <span class="text-xs font-bold text-orange-600" id="prPatDoctor">-</span>
+            </div>
+            <div>
+              <span class="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Service</span>
+              <span class="text-xs font-bold text-slate-800" id="prPatService">-</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fee Card -->
+        <div class="bg-orange-50 rounded-xl p-4 border border-orange-200 flex justify-between items-center mb-6">
+          <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Fee Amount</span>
+          <span class="text-xl font-black text-orange-600" id="prPatFee">Rs 0.00</span>
+        </div>
+
+        <!-- Footer -->
+        <div class="flex justify-between items-end pt-6 border-t border-slate-200 text-[10px] text-slate-500">
+          <div>
+            <p class="font-bold text-slate-700">Posvibe Healthcare ERP | OPD Clinical Department</p>
+            <p class="text-slate-400">Computer generated patient receipt. Valid without physical signature.</p>
+          </div>
+          <div class="text-center w-36 border-t border-slate-400 pt-1 font-semibold text-slate-700">
+            Doctor / Attendant
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load Application Engine Logic -->
+  <script type="module" src="/src/payvibes.js"></script>
+  <script type="module" src="/src/app.js"></script>
+</body>
+</html>
