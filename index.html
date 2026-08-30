@@ -161,7 +161,7 @@
     <!-- Sidebar Navigation -->
     <aside class="w-64 bg-white text-slate-700 flex flex-col border-r border-slate-200 shadow-sm z-20 shrink-0">
       <div class="p-4 border-b border-slate-100 flex items-center justify-between">
-        <div class="flex items-center space-x-3">
+        <div onclick="showTab('dashboard')" class="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition" title="Go to Dashboard Overview">
           <img src="https://zuraizadil32-cyber.github.io/Payvubes/logo.png" alt="Posvibe logo" class="w-9 h-9 rounded-lg object-contain shadow border border-orange-500/30 p-0.5 bg-slate-900">
           <div>
             <h2 class="font-extrabold text-slate-900 text-sm tracking-tight">Posvibe</h2>
@@ -286,8 +286,9 @@
     <!-- Main Workspace -->
     <main class="flex-1 flex flex-col overflow-hidden bg-slate-100">
       <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shadow-sm z-10">
-        <div class="flex items-center space-x-3">
-          <h3 id="currentTabTitle" class="text-base font-extrabold text-slate-800">Dashboard Overview</h3>
+        <div onclick="showTab('dashboard')" class="flex items-center space-x-2.5 cursor-pointer hover:text-orange-600 transition group" title="Return to Dashboard Overview">
+          <i class="fa-solid fa-house text-slate-400 group-hover:text-orange-500 text-sm transition"></i>
+          <h3 id="currentTabTitle" class="text-base font-extrabold text-slate-800 group-hover:text-orange-600 transition">Dashboard Overview</h3>
         </div>
         <div class="flex items-center space-x-2">
           <button id="themeToggleBtn" onclick="toggleDarkMode()" class="p-2 text-slate-500 hover:text-orange-500 rounded-lg hover:bg-slate-100 transition flex items-center justify-center text-sm font-bold border border-slate-200" title="Switch to Dark Mode">
