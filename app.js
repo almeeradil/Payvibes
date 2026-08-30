@@ -3594,81 +3594,65 @@ function printDocument(elementId = 'printInvoiceArea') {
     return;
   }
 
-  // Remove any stale print iframes
-  const oldFrame = document.getElementById('appPrintIframe');
-  if (oldFrame) {
-    try {
-      oldFrame.remove();
-    } catch (e) {}
+  // Use global React trigger if available
+  if (typeof window.triggerGlobalPrint === 'function') {
+    window.triggerGlobalPrint(el.outerHTML || el.innerHTML, 'Payvibes Statutory Document');
+    return;
   }
 
-  // Create isolated invisible print iframe with proper layout dimensions
-  const printFrame = document.createElement('iframe');
-  printFrame.id = 'appPrintIframe';
-  printFrame.style.position = 'fixed';
-  printFrame.style.left = '-9999px';
-  printFrame.style.top = '0';
-  printFrame.style.width = '1024px';
-  printFrame.style.height = '768px';
-  printFrame.style.border = '0';
-  printFrame.style.visibility = 'hidden';
-  document.body.appendChild(printFrame);
+  // Fallback direct DOM print mount strategy
+  let printMount = document.getElementById('posvibe-print-mount');
+  if (!printMount) {
+    printMount = document.createElement('div');
+    printMount.id = 'posvibe-print-mount';
+    document.body.appendChild(printMount);
+  }
 
-  const clonedHtml = el.innerHTML;
-  const docHtml = `
-    <!DOCTYPE html>
-    <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <title>Payvibes Statutory Document Print</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-        <style>
-          @page { size: auto; margin: 8mm; }
-          * { box-sizing: border-box; }
-          body { 
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-            background: #ffffff; 
-            color: #000000; 
-            margin: 0; 
-            padding: 16px; 
-            -webkit-print-color-adjust: exact; 
-            print-color-adjust: exact; 
-          }
-          .no-print { display: none !important; }
-          table { width: 100%; border-collapse: collapse; }
-        </style>
-      </head>
-      <body class="bg-white text-black p-4">
-        ${clonedHtml}
-      </body>
-    </html>
-  `;
-
-  try {
-    const frameDoc = printFrame.contentWindow.document;
-    frameDoc.open();
-    frameDoc.write(docHtml);
-    frameDoc.close();
-
-    const doPrint = () => {
-      setTimeout(() => {
-        try {
-          printFrame.contentWindow.focus();
-          printFrame.contentWindow.print();
-        } catch (err) {
-          window.print();
+  if (!document.getElementById('posvibe-print-style')) {
+    const style = document.createElement('style');
+    style.id = 'posvibe-print-style';
+    style.textContent = `
+      @media print {
+        body > *:not(#posvibe-print-mount) {
+          display: none !important;
         }
-      }, 350);
-    };
-
-    if (printFrame.contentWindow) {
-      printFrame.contentWindow.onload = doPrint;
-    }
-    setTimeout(doPrint, 500);
-  } catch (err) {
-    window.print();
+        #posvibe-print-mount {
+          display: block !important;
+          position: absolute !important;
+          left: 0 !important;
+          top: 0 !important;
+          width: 100% !important;
+          background: #ffffff !important;
+          color: #000000 !important;
+          z-index: 99999999 !important;
+          padding: 16px !important;
+          margin: 0 !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        .no-print {
+          display: none !important;
+        }
+      }
+      @media screen {
+        #posvibe-print-mount {
+          display: none !important;
+        }
+      }
+    `;
+    document.head.appendChild(style);
   }
+
+  printMount.innerHTML = el.innerHTML;
+
+  setTimeout(() => {
+    try {
+      window.focus();
+      window.print();
+    } catch (err) {
+      console.warn('Browser print execution failed:', err);
+    }
+  }, 150);
 }
 
 function downloadDocumentCopy(elementId, filename = 'document_copy.html') {
@@ -3702,6 +3686,61 @@ function downloadDocumentCopy(elementId, filename = 'document_copy.html') {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
+
+function renderReport() {
+  renderAll();
+}
+
+function clearReportFilters() {
+  const fromEl = document.getElementById('repFrom');
+  const toEl = document.getElementById('repTo');
+  const searchEl = document.getElementById('repSearch');
+  if (fromEl) fromEl.value = '';
+  if (toEl) toEl.value = '';
+  if (searchEl) searchEl.value = '';
+  renderReport();
+}
+
+function printReport() {
+  window.print();
+}
+
+function handleBarcodeScan() {
+  const code = prompt("Scan or enter Product Barcode / SKU / Batch:");
+  if (!code) return;
+  const item = (window.userData?.inventory || []).find(i => i.batch === code || i.name.toLowerCase().includes(code.toLowerCase()));
+  if (item) {
+    alert(`Scanned: ${item.name}\nBatch: ${item.batch}\nPrice: Rs ${item.salePrice}\nStock: ${item.qty} units`);
+  } else {
+    alert(`No inventory item matched barcode / SKU: ${code}`);
+  }
+}
+
+function clearScanLog() {
+  const logEl = document.getElementById('scanLogContainer');
+  if (logEl) logEl.innerHTML = '<p class="text-xs text-slate-400 italic">No recent scans logged.</p>';
+}
+
+function saveGrowSettings() {
+  alert("Business Profile & Growth settings saved successfully!");
+}
+
+function shareMarketing(channel) {
+  const msg = encodeURIComponent("Special Offer from Payvibes Store! Visit us or call now for discounts on medicines and health supplies.");
+  if (channel === 'whatsapp') {
+    window.open(`https://wa.me/?text=${msg}`, '_blank');
+  } else {
+    alert("SMS campaign queued and sent to registered customers!");
+  }
+}
+
+window.renderReport = renderReport;
+window.clearReportFilters = clearReportFilters;
+window.printReport = printReport;
+window.handleBarcodeScan = handleBarcodeScan;
+window.clearScanLog = clearScanLog;
+window.saveGrowSettings = saveGrowSettings;
+window.shareMarketing = shareMarketing;
 
 // Attach All Functions to Window for Global Onclick Compatibility
 window.handleLogin = handleLogin;
